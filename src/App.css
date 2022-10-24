@@ -3,18 +3,18 @@
 @tailwind utilities;
 
 :root {
-  --background-color: #fff;
-  --text-color: #111;
+  --isometric: rotateX(45deg) rotateZ(45deg);
+  --unisometric: rotateZ(-45deg) scaleY(1.414);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background-color: rgb(20, 20, 20);
-    --text-color: rgb(230, 230, 230);
-  }
+/* transforms */
+.isometric {
+  transform: var(--isometric);
+  transform-style: preserve-3d;
+  /* perspective: 20vmin; */
 }
 
-body {
-  background-color: var(--background-color);
-  color: var(--text-color);
+.unisometric {
+  transform: var(--unisometric);
+  transform-style: preserve-3d;
 }

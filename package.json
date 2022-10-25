@@ -45,14 +45,14 @@
   },
   "scripts": {
     "build": "vite build",
+    "preview": "vite preview",
     "dev": "vite dev",
     "format": "prettier --write .",
     "lint:format": "prettier --cache --check .",
     "lint": "eslint --cache .",
     "test": "npm-run-all --parallel tsc:check vitest:run lint lint:format",
     "tsc:check": "tsc",
-    "vitest:run": "vitest run",
-    "gh-pages": "rm -rf node_modules/.cache && vite build && touch out/.nojekyll && git add -f dist/ && git commit -m \"Deploy to gh-pages\" && git push --force origin `git subtree split --prefix out main`:gh-pages"
+    "vitest:run": "vitest run"
   },
   "browserslist": [
     ">0.2%",

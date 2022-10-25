@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  --isometric: rotateX(45deg) rotateZ(45deg);
+  --isometric: rotateX(50deg) rotateZ(45deg);
   --unisometric: rotateZ(-45deg) scaleY(1.414);
 }
 

@@ -25,7 +25,7 @@ module.exports = {
       jsx: true,
     },
   },
-  plugins: ['import', 'react', '@typescript-eslint', 'typescript-sort-keys'],
+  plugins: ['import', 'react', '@typescript-eslint'],
   rules: {
     '@typescript-eslint/ban-ts-comment': 0,
     '@typescript-eslint/no-empty-function': 0,
@@ -68,14 +68,11 @@ module.exports = {
     'react/prop-types': 0,
     'react/react-in-jsx-scope': 0,
     semi: [2, 'always'],
-    'sort-keys': 2,
     'space-before-blocks': 2,
     'space-before-function-paren': [
       2,
       { anonymous: 'never', asyncArrow: 'always', named: 'never' },
     ],
-    'typescript-sort-keys/interface': 2,
-    'typescript-sort-keys/string-enum': 2,
   },
   settings: {
     'import/parsers': {

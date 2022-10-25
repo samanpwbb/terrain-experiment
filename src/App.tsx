@@ -28,8 +28,9 @@ const levels = 8;
 const mid = 3;
 
 // before going further, figure out the math for all these parameters.
-const base_width = 70;
+const base_width = 67;
 const tile_distance = 7;
+const y_scale = 1.19;
 
 // const defaultGround = groundToData(generateGround(levels, Math.random, tiles));
 const allMidGround = groundToData(
@@ -56,17 +57,17 @@ export default function App() {
         setGround(groundToData(generateGround(levels, undefined, tiles)));
       }
 
-      if (toggle.current >= 10) {
+      if (toggle.current >= 4) {
         setGround(allMidGround);
         toggle.current = 0;
         return;
       }
 
-      if (toggle.current < 10) {
+      if (toggle.current < 4) {
         toggle.current++;
         return;
       }
-    }, 500);
+    }, 1000);
     return () => {
       clearInterval(interval.current!);
     };
@@ -92,7 +93,7 @@ export default function App() {
                 transform: `translate3d(${
                   (x / tileSize) * tile_distance
                 }vmin, ${(y / tileSize) * tile_distance}vmin, ${
-                  ((z - mid) / tileSize) * tile_distance * 1.414
+                  ((z - mid) / tileSize) * tile_distance * y_scale
                 }vmin)`,
                 transitionDuration: `${
                   500 + (Math.abs(z - mid) / tileSize) * 250

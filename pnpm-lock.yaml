@@ -12,6 +12,7 @@ specifiers:
   '@typescript-eslint/parser': ^5.38.0
   '@vitejs/plugin-react': ^2.1.0
   autoprefixer: ^10.4.12
+  colord: ^2.9.3
   eslint: ^8.24.0
   eslint-import-resolver-typescript: ^3.5.1
   eslint-plugin-import: ^2.26.0
@@ -32,6 +33,7 @@ specifiers:
 
 dependencies:
   '@react-spring/web': 9.5.5_biqbaboplfbrettd7655fr4n2y
+  colord: 2.9.3
   fast-simplex-noise: 4.0.0
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
@@ -1274,6 +1276,10 @@ packages:
   /color-name/1.1.4:
     resolution: {integrity: sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==}
     dev: true
+
+  /colord/2.9.3:
+    resolution: {integrity: sha512-jeC1axXpnb0/2nn/Y1LPuLdgXBLH7aDcHu4KEKfqw3CUhX7ZpfBSlPKyqXE6btIgEzfWtrX3/tyBCaCvXvMkOw==}
+    dev: false
 
   /concat-map/0.0.1:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}

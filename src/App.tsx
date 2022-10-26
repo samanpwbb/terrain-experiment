@@ -1,53 +1,87 @@
 import { useEffect, useRef, useState } from 'react';
+import { colors } from './colors';
 import { generateGround, groundToData } from './ground';
-import { useTrail, animated, useTransition, config } from '@react-spring/web';
+import { scale, setIsoCssVars } from './perspective-utils';
+import { useWindowSize } from './useWindowSize';
+import { colord } from 'colord';
 
-// next:
-// - [ ] Figure out math for parameters.
-// - [ ] drag and load in new tiles from any direction.
-// - [ ] add basic side faces.
+const tiles = 20;
+const baseTileSize = 6;
+const levels = 10;
+const mid = 0;
+const floorHeight = 1;
 
-// a list of 10 colors making a gradient from gree to blue
-const colors = [
-  '#ef6',
-  '#cafa6e',
-  '#82ea7f',
-  '#1ed693',
-  // '#00c0a4',
-  // '#00a8ae',
-  '#008fb0',
-  '#0075a6',
-  '#005b93',
-  '#0c4278',
-  // '#0F172A',
-].reverse();
+const stepSize = 0.5;
 
-// These we understand.
-const tiles = 25;
-const levels = 8;
-const mid = 3;
-
-// before going further, figure out the math for all these parameters.
-const base_width = 67;
-const tile_distance = 7;
-const y_scale = 1.19;
-
-// const defaultGround = groundToData(generateGround(levels, Math.random, tiles));
 const allMidGround = groundToData(
   generateGround(levels, undefined, tiles, mid),
 );
+
+setIsoCssVars();
+
+function Tile({
+  x,
+  y,
+  z,
+  tileSize,
+}: {
+  tileSize: number;
+  x: number;
+  y: number;
+  z: number;
+}) {
+  // scale z by half, _every other_ int is a full step.
+  const zBase = floorHeight + z * scale * stepSize;
+  const zOffset = zBase * tileSize;
+  const xOffset = x * tileSize;
+  const yOffset = y * tileSize;
+  const transition = `${250 + Math.abs(floorHeight + z) * 250}ms`;
+  return (
+    <>
+      <div
+        className={`absolute transition-all`}
+        style={{
+          transform: `
+            translate3d(
+              ${xOffset}px,
+              ${yOffset}px,
+              ${zOffset}px
+            )`,
+          height: `${tileSize}px`,
+          width: `${tileSize}px`,
+          transformStyle: 'preserve-3d',
+          backgroundColor: colors[z],
+          transitionDuration: transition,
+        }}
+      >
+        <div
+          className={`absolute inset-0 transition-all`}
+          style={{
+            transform: `rotateX(90deg) scaleY(${zBase})`,
+            transformOrigin: 'bottom',
+            backgroundColor: colord(colors[z]).rotate(50).toHex(),
+            transitionDuration: transition,
+          }}
+        />
+        <div
+          className={`absolute inset-0 transition-all`}
+          style={{
+            transform: `rotateY(90deg) scaleX(${zBase}) translateX(100%)`,
+            transformOrigin: 'right',
+            backgroundColor: colord(colors[z]).rotate(-50).toHex(),
+            transitionDuration: transition,
+          }}
+        />
+      </div>
+    </>
+  );
+}
+
 export default function App() {
   const [ground, setGround] = useState(allMidGround);
 
-  const tileSize = base_width / tiles;
-
-  // const transitions = useTransition(ground, {
-  //   config: config.molasses,
-  //   enter: { t: 1 },
-  //   from: { t: 0 },
-  //   keys: (item) => `${item[0]}${item[1]}`,
-  //   leave: { t: 0 },
-  // });
+  const windowSize = useWindowSize();
+  const tileSize = baseTileSize + windowSize[0] * 0.0125;
 
   const toggle = useRef(0);
   const interval = useRef<NodeJS.Timeout>();
@@ -73,34 +107,20 @@ export default function App() {
     };
   }, []);
 
+  if (windowSize[0] === 0) return null;
+
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-slate-900">
       <div
         className="isometric"
         style={{
-          height: `${base_width}vmin`,
-          width: `${base_width}vmin`,
+          height: `${50}vmin`,
+          width: `${50}vmin`,
         }}
       >
         {ground.map(([x, y, z]) => {
           return (
-            <div
-              className={`absolute transition-all`}
-              key={x + ',' + y}
-              style={{
-                backgroundColor: colors[z],
-                height: `${tileSize}vmin`,
-                transform: `translate3d(${
-                  (x / tileSize) * tile_distance
-                }vmin, ${(y / tileSize) * tile_distance}vmin, ${
-                  ((z - mid) / tileSize) * tile_distance * y_scale
-                }vmin)`,
-                transitionDuration: `${
-                  500 + (Math.abs(z - mid) / tileSize) * 250
-                }ms`,
-                width: `${tileSize}vmin`,
-              }}
-            />
+            <Tile key={x + ',' + y} tileSize={tileSize} x={x} y={y} z={z} />
           );
         })}
       </div>

@@ -3,18 +3,15 @@
 @tailwind utilities;
 
 :root {
-  --isometric: rotateX(50deg) rotateZ(45deg);
-  --unisometric: rotateZ(-45deg) scaleY(1.414);
 }
 
 /* transforms */
 .isometric {
-  transform: var(--isometric);
+  transform: rotateX(var(--base-x)) rotateZ(var(--base-z));
   transform-style: preserve-3d;
-  /* perspective: 20vmin; */
 }
 
 .unisometric {
-  transform: var(--unisometric);
+  transform: rotateZ(var(--base-z-reverse)) scale(var(--scale));
   transform-style: preserve-3d;
 }

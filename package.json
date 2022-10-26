@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@react-spring/web": "^9.5.5",
+    "colord": "^2.9.3",
     "fast-simplex-noise": "^4.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"

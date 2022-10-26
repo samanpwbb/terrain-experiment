@@ -7,7 +7,8 @@
 
 /* transforms */
 .isometric {
-  transform: rotateX(var(--base-x)) rotateZ(var(--base-z));
+  /* the first trannslateZ is to avoid clipping with the un-translated background */
+  transform: translateZ(100vmin) rotateX(var(--base-x)) rotateZ(var(--base-z));
   transform-style: preserve-3d;
 }
 

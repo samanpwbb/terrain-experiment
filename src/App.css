@@ -5,10 +5,17 @@
 :root {
 }
 
+.parent {
+  /* if we want perspective */
+  /* perspective: 100vmin; */
+  /* perspective-origin: 50% 33%; */
+  /* transform-style: preserve-3d; */
+}
+
 /* transforms */
 .isometric {
   /* the first trannslateZ is to avoid clipping with the un-translated background */
-  transform: translateZ(100vmin) rotateX(var(--base-x)) rotateZ(var(--base-z));
+  transform: translateZ(400px) rotateX(var(--base-x)) rotateZ(var(--base-z));
   transform-style: preserve-3d;
 }
 

@@ -9,7 +9,7 @@ import { useAnimateOnInterval } from './useAnimateOnInterval';
 // next:
 // - slopes.
 // - load on move, fade out edges.
-
+// - move calculations to web worker using comlink.
 const tiles = 7;
 const levels = 9;
 const baseTileSize = 15;
@@ -88,13 +88,14 @@ function Tile({
 }
 
 const start = groundToData(generateGround(levels, undefined, tiles));
+
 export function DemoThree() {
   const [ground, setGround] = useState(start);
 
   const windowSize = useWindowSize();
   const tileSize = baseTileSize + windowSize[0] * 0.0125;
 
-  useAnimateOnInterval(setGround, levels, tiles, start, 3000, 1);
+  useAnimateOnInterval(setGround, levels, tiles, 2000, 1);
 
   if (windowSize[0] === 0) return null;
 

@@ -5,7 +5,6 @@ export function useAnimateOnInterval(
   set: (tiles: Ground) => void,
   levels: number,
   tiles: number,
-  start: Ground,
   t = 1000,
   hold = 4,
 ) {
@@ -18,7 +17,6 @@ export function useAnimateOnInterval(
       }
 
       if (toggle.current >= hold) {
-        set(start);
         toggle.current = 0;
         return;
       }

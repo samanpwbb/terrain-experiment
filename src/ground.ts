@@ -31,7 +31,7 @@ export function groundToTiles(ground: string) {
     .map((row) => row.split('').map((tile) => parseInt(tile)));
 }
 
-export type Tile = [x: number, y: number, z: number];
+export type Tile = [x: number, y: number, z: number, ramp: string];
 export type Ground = Tile[];
 
 export function generateGround(
@@ -75,12 +75,21 @@ function wiggle(v: number, g: () => number, mod = 2) {
   return nv;
 }
 
+function getNeighbors(x: number, y: number, rows: string[], z: number): string {
+  const l = Number(rows[y][x - 1]) > z ? 1 : 0;
+  const u = Number(rows[y - 1]?.[x]) > z ? 1 : 0;
+  const r = Number(rows[y][x + 1]) > z ? 1 : 0;
+  const d = Number(rows[y + 1]?.[x]) > z ? 1 : 0;
+  return `${l}${u}${r}${d}`;
+}
+
 export function groundToData(ground: string): Ground {
-  return ground
-    .split('\n')
+  const rows = ground.split('\n');
+  return rows
     .map((row, y) => {
-      return row.split('').map((tile, x) => {
-        return [x, y, parseInt(tile)] as Tile;
+      return row.split('').map((zStr, x) => {
+        const z = parseInt(zStr);
+        return [x, y, z, getNeighbors(x, y, rows, z)] as Tile;
       });
     })
     .flat();

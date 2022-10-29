@@ -29,6 +29,8 @@ function getTransformFromNeighbors(n: string, z: number) {
 
   if (n === '1000' || (n === '1100' && !(z % 2))) {
     // Make these hard coded values (35, 1.25) dynamic.
+    // Right now, requires BASE_X to be 45. There is a way to derive this with a
+    // bit of trig.
     nData.angle = 35;
     nData.nTransform = `rotateY(${nData.angle}deg) scaleX(1.25)`;
     nData.zAdjustment = 0;

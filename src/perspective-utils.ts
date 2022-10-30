@@ -1,8 +1,10 @@
 // basic perspective parameters
-export const BASE_X = 45;
+// why does 57.2958 work here?
+export const BASE_X = 57.2958;
 export const BASE_Z = 45;
-export const RADIAN_CONVERSION = 0.0174533;
-export const scale = 1 / Math.sin((BASE_X + 90) * RADIAN_CONVERSION);
+export const ANGLE_TO_RADIAN = 0.0174533;
+export const RADIAN_TO_ANGLE = 57.2958;
+export const scale = 1 / Math.sin((BASE_X + 90) * ANGLE_TO_RADIAN);
 
 export function setIsoCssVars() {
   document.documentElement.style.setProperty('--base-x', `${BASE_X}deg`);

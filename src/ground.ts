@@ -63,7 +63,6 @@ export function generateGround(
     ground += `${row2}\n`;
     ground += `${row3}\n`;
   }
-  console.log(ground);
   return ground;
 }
 

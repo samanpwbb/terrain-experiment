@@ -4,20 +4,18 @@ import { generateGround, groundToData } from './ground';
 import { scale, setIsoCssVars, RADIAN_TO_ANGLE } from './perspective-utils';
 import { useWindowSize } from './useWindowSize';
 import { useAnimateOnInterval } from './useAnimateOnInterval';
-// import { colord } from 'colord';
+import { colord } from 'colord';
 
-// this is not very smart but it works for now.
-
-// next:
-// - side-panes.
-// - slopes.
-//    - calculate the scale and anchor points.
-// - load on move, fade out edges.
-// - move calculations to web worker using comlink.
+/* next
+ * - [ ] Add back panels to hide the colors peeking through.
+ *       - could do this with a shape mask, or with another panel.
+ * - [ ] adjust ramp colors.
+ * - [ ] Add more ramp styles.
+ */
 const tiles = 5;
 const levels = 9;
-const baseTileSize = 30;
-const floorHeight = 0;
+const baseTileSize = 20;
+const floorHeight = 3;
 
 const stepSize = 0.25;
 
@@ -48,10 +46,7 @@ function getTransformFromNeighbors({
   const scale = hypot / tileSize;
   const angle = Math.asin(zTile / hypot) * RADIAN_TO_ANGLE;
 
-  if (n === '1000' || n === '1100') {
-    // Make these hard coded values (35, 1.25) dynamic.
-    // Right now, requires BASE_X to be 45. There is a way to derive this with a
-    // bit of trig.
+  if (n === '1000') {
     nData.scale = scale;
     nData.angle = angle;
     nData.nTransform = `rotateY(${angle}deg) scaleX(${scale})`;
@@ -59,18 +54,20 @@ function getTransformFromNeighbors({
   }
   if (n === '0100') {
     nData.scale = scale;
-    nData.angle = -35;
+    nData.angle = -angle;
     nData.nTransform = `rotateX(-${angle}deg) scaleY(${scale})`;
     nData.anchor = 'bottom';
   }
-
-  // if (n === '0001') {
-  //   nData.angle = 35;
-  //   // 35, 1.25
-  //   nData.nTransform = `rotateX(${nData.angle}deg) scaleY(1.25)`;
-  //   nData.zAdjustment = 0;
-  //   nData.anchor = 'top';
-  // }
+  if (n === '0001') {
+    nData.angle = angle;
+    nData.nTransform = `rotateX(${angle}deg) scaleY(${scale})`;
+    nData.anchor = 'top';
+  }
+  if (n === '0010') {
+    nData.angle = -angle;
+    nData.nTransform = `rotateY(-${angle}deg) scaleX(${scale})`;
+    nData.anchor = 'left';
+  }
 
   return nData;
 }
@@ -94,7 +91,7 @@ function Tile({
   const zOffset = zBase * tileSize;
   const xOffset = x * tileSize;
   const yOffset = y * tileSize;
-  const transition = `${250 + Math.abs(floorHeight + z) * 250}ms`;
+  // const transition = `${250 + Math.abs(floorHeight + z) * 100}ms`;
   const { anchor, nTransform } = getTransformFromNeighbors({
     tileSize,
     zStep,
@@ -105,7 +102,7 @@ function Tile({
   return (
     <>
       <div
-        className={`absolute transition-all`}
+        className={`absolute `}
         style={{
           transform: `
             translate3d(
@@ -118,11 +115,31 @@ function Tile({
           transformOrigin: anchor,
           backgroundColor: colorsNatural[z],
           willChange: 'transform',
-          transitionDuration: transition,
+          boxShadow: 'inset 0 0 0 1px #0E172A',
         }}
       />
+      {/* this is sort of like a mask, so tiles behind angled tiles don't show through*/}
+      {nTransform && (
+        <div
+          className={`absolute `}
+          style={{
+            transform: `
+            translate3d(
+              ${xOffset}px,
+              ${yOffset}px,
+              ${zOffset}px
+            )`,
+            height: `${tileSize}px`,
+            width: `${tileSize}px`,
+            transformOrigin: anchor,
+            // background: colorsNatural[z],
+            background: '#0E172A',
+            willChange: 'transform',
+          }}
+        />
+      )}
       <div
-        className={`absolute transition-all`}
+        className={`absolute `}
         style={{
           height: `${tileSize}px`,
           width: `${tileSize}px`,
@@ -140,11 +157,10 @@ function Tile({
           //   .darken(0.2)
           //   .toHex(),
           // opacity: 0,
-          transitionDuration: transition,
         }}
       />
       <div
-        className={`absolute transition-all`}
+        className={`absolute `}
         style={{
           height: `${tileSize}px`,
           width: `${tileSize}px`,
@@ -158,7 +174,6 @@ function Tile({
           willChange: 'transform',
           // background: colord(colorsNatural[z]).rotate(20).lighten(0.2).toHex(),
           background: '#0E172A',
-          transitionDuration: transition,
         }}
       />
     </>
@@ -179,12 +194,12 @@ export function DemoThree() {
   if (windowSize[0] === 0) return null;
 
   return (
-    <div className="parent fixed inset-0 flex items-center justify-center bg-slate-900">
+    <div className="parent fixed inset-0 flex items-center justify-center bg-slate-700">
       <div
         className="isometric"
         style={{
-          height: `${60}vmin`,
-          width: `${60}vmin`,
+          height: `${40}vmin`,
+          width: `${40}vmin`,
         }}
       >
         {ground.map(([x, y, z, n]) => {

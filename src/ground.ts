@@ -74,11 +74,16 @@ function wiggle(v: number, g: () => number, mod = 2) {
   return nv;
 }
 
+const cliffThreshold = 3;
 function getNeighbors(x: number, y: number, rows: string[], z: number): string {
-  const l = Number(rows[y][x - 1]) > z ? 1 : 0;
-  const u = Number(rows[y - 1]?.[x]) > z ? 1 : 0;
-  const r = Number(rows[y][x + 1]) > z ? 1 : 0;
-  const d = Number(rows[y + 1]?.[x]) > z ? 1 : 0;
+  const lValDiff = Number(rows[y][x - 1]) - z;
+  const l = lValDiff > 0 && lValDiff < cliffThreshold ? 1 : 0;
+  const uValDiff = Number(rows[y - 1]?.[x]) - z;
+  const u = uValDiff > 0 && uValDiff < cliffThreshold ? 1 : 0;
+  const rValDiff = Number(rows[y][x + 1]) - z;
+  const r = rValDiff > 0 && rValDiff < cliffThreshold ? 1 : 0;
+  const dValDiff = Number(rows[y + 1]?.[x]) - z;
+  const d = dValDiff > 0 && dValDiff < cliffThreshold ? 1 : 0;
   return `${l}${u}${r}${d}`;
 }
 

@@ -4,18 +4,24 @@ import { generateGround, groundToData } from './ground';
 import { scale, setIsoCssVars, RADIAN_TO_ANGLE } from './perspective-utils';
 import { useWindowSize } from './useWindowSize';
 import { useAnimateOnInterval } from './useAnimateOnInterval';
-import { colord } from 'colord';
+// import { colord } from 'colord';
 
 /* next
  * - [ ] Add back panels to hide the colors peeking through.
  *       - could do this with a shape mask, or with another panel.
  * - [ ] adjust ramp colors.
+ *        - use a interpolation function and treat ramps as half-steps.
+ * - [ ] Water transition?
  * - [ ] Add more ramp styles.
+ *       - no holes!
+ * - [ ] Bring back nice animations.
+ * - [ ] Camera controls.
+ *
  */
 const tiles = 5;
-const levels = 9;
-const baseTileSize = 20;
-const floorHeight = 3;
+const levels = 8;
+const baseTileSize = 25;
+const floorHeight = 0;
 
 const stepSize = 0.25;
 
@@ -102,7 +108,7 @@ function Tile({
   return (
     <>
       <div
-        className={`absolute `}
+        className={`absolute`}
         style={{
           transform: `
             translate3d(
@@ -115,7 +121,7 @@ function Tile({
           transformOrigin: anchor,
           backgroundColor: colorsNatural[z],
           willChange: 'transform',
-          boxShadow: 'inset 0 0 0 1px #0E172A',
+          boxShadow: 'inset 0 0 0 1px #334156',
         }}
       />
       {/* this is sort of like a mask, so tiles behind angled tiles don't show through*/}
@@ -133,7 +139,7 @@ function Tile({
             width: `${tileSize}px`,
             transformOrigin: anchor,
             // background: colorsNatural[z],
-            background: '#0E172A',
+            background: '#334156',
             willChange: 'transform',
           }}
         />
@@ -150,7 +156,7 @@ function Tile({
           ) rotateX(90deg) scaleY(${zBase})`,
           transformOrigin: 'bottom',
           willChange: 'transform',
-          background: '#0E172A',
+          background: '#334156',
           // background: colord(colorsNatural[z])
           //   .rotate(-20)
           //   .desaturate(0.2)
@@ -173,7 +179,7 @@ function Tile({
           transformOrigin: 'right',
           willChange: 'transform',
           // background: colord(colorsNatural[z]).rotate(20).lighten(0.2).toHex(),
-          background: '#0E172A',
+          background: '#334156',
         }}
       />
     </>
@@ -194,12 +200,12 @@ export function DemoThree() {
   if (windowSize[0] === 0) return null;
 
   return (
-    <div className="parent fixed inset-0 flex items-center justify-center bg-slate-700">
+    <div className="parent fixed inset-0 flex items-center justify-center bg-slate-800">
       <div
         className="isometric"
         style={{
-          height: `${40}vmin`,
-          width: `${40}vmin`,
+          height: `${55}vmin`,
+          width: `${55}vmin`,
         }}
       >
         {ground.map(([x, y, z, n]) => {

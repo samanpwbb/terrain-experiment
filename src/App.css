@@ -7,14 +7,16 @@
 
 .parent {
   /* if we want perspective */
-  /* perspective: 100vmin; */
+  perspective: 1250vmin;
   /* perspective-origin: 50% 33%; */
-  /* transform-style: preserve-3d; */
+  transform-style: preserve-3d;
+  transition: all 0.5s ease-in-out;
 }
 
 /* transforms */
 .isometric {
   /* the first trannslateZ is to avoid clipping with the un-translated background */
+  transition: all 0.5s ease-in-out;
   transform: translateZ(400px) rotateX(var(--base-x)) rotateZ(var(--base-z));
   transform-style: preserve-3d;
 }
@@ -22,4 +24,8 @@
 .unisometric {
   transform: rotateZ(var(--base-z-reverse)) scale(var(--scale));
   transform-style: preserve-3d;
+}
+
+.filter {
+  filter: url('#turb');
 }

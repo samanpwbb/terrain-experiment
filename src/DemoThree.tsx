@@ -1,194 +1,44 @@
 import { useState } from 'react';
-import { colorsNatural } from './colors';
-import { generateGround, groundToData } from './ground';
-import { scale, setIsoCssVars, RADIAN_TO_ANGLE } from './perspective-utils';
+import { generateExpandedGround, groundToData } from './ground';
+import { setIsoCssVars } from './perspective-utils';
 import { useWindowSize } from './useWindowSize';
 import { useAnimateOnInterval } from './useAnimateOnInterval';
-// import { colord } from 'colord';
+import { Tile } from './Tile';
 
 /* next
- * - [ ] Add back panels to hide the colors peeking through.
+ * - [ ] Fix the math
+ * - [ ] Fix edge case tiles.
+ * - [ ] Fix triangular gaps on cliffs.
+ * - [ ] Handle case where adjacent tiles are lower but across tile is higher. These should be flat.
+ * - [ ] Add rear panels to hide the colors peeking through.
  *       - could do this with a shape mask, or with another panel.
- * - [ ] adjust ramp colors.
+ * - [x] adjust ramp colors.
  *        - use a interpolation function and treat ramps as half-steps.
- * - [ ] Water transition?
+ * - [ ] Figure out math for scaling.
+ * - [ ] Water level overlay
  * - [ ] Add more ramp styles.
  *       - no holes!
- * - [ ] Bring back nice animations.
- * - [ ] Camera controls.
+ * - [ ] Camera controls (perspective, perspective origin).
+ * - [ ] Use a format that allows more than 10 levels.
+ * - [ ] Nice animations.
+ * - [x] Water transition
+ * - [x] Do all coloring with interpolation
+ * - [x] If ramp is down, lighten ramp, if right, darken ramp as a way to do lighting.
+ * - [ ] Rework terrain generator so there is less small variation.
+ * - [x] Handle cases where ground tiles are neighbors to ramps. We need to look at diagonal neighbors.
  *
+ * Maybe:
+ * - [?] Allow ramps to angle up to two tiles not just one.
  */
-const tiles = 5;
-const levels = 8;
-const baseTileSize = 25;
-const floorHeight = 0;
 
-const stepSize = 0.25;
+const tiles = 6;
+const levels = 10;
+const baseTileSize = 20;
 
 setIsoCssVars();
 
-function getTransformFromNeighbors({
-  n,
-  z,
-  tileSize,
-  zStep,
-}: {
-  n: string;
-  z: number;
-  tileSize: number;
-  zStep: number;
-}) {
-  const nData = { nTransform: '', anchor: '', angle: 0, scale: 0 };
-  if (z < 3) return nData;
-
-  //        |\
-  //  ztile | \  scale
-  //        |  \
-  //        |___\
-  //        xtile
-  //
-  const zTile = zStep * tileSize;
-  const hypot = Math.hypot(tileSize, zTile);
-  const scale = hypot / tileSize;
-  const angle = Math.asin(zTile / hypot) * RADIAN_TO_ANGLE;
-
-  if (n === '1000') {
-    nData.scale = scale;
-    nData.angle = angle;
-    nData.nTransform = `rotateY(${angle}deg) scaleX(${scale})`;
-    nData.anchor = 'right';
-  }
-  if (n === '0100') {
-    nData.scale = scale;
-    nData.angle = -angle;
-    nData.nTransform = `rotateX(-${angle}deg) scaleY(${scale})`;
-    nData.anchor = 'bottom';
-  }
-  if (n === '0001') {
-    nData.angle = angle;
-    nData.nTransform = `rotateX(${angle}deg) scaleY(${scale})`;
-    nData.anchor = 'top';
-  }
-  if (n === '0010') {
-    nData.angle = -angle;
-    nData.nTransform = `rotateY(-${angle}deg) scaleX(${scale})`;
-    nData.anchor = 'left';
-  }
-
-  return nData;
-}
-
-function Tile({
-  x,
-  y,
-  z,
-  tileSize,
-  neighbors,
-}: {
-  tileSize: number;
-  x: number;
-  y: number;
-  z: number;
-  neighbors: string;
-}) {
-  // scale z by half, _every other_ int is a full step.
-  const zStep = scale * stepSize;
-  const zBase = floorHeight + z * zStep;
-  const zOffset = zBase * tileSize;
-  const xOffset = x * tileSize;
-  const yOffset = y * tileSize;
-  // const transition = `${250 + Math.abs(floorHeight + z) * 100}ms`;
-  const { anchor, nTransform } = getTransformFromNeighbors({
-    tileSize,
-    zStep,
-    z,
-    n: neighbors,
-  });
-
-  return (
-    <>
-      <div
-        className={`absolute`}
-        style={{
-          transform: `
-            translate3d(
-              ${xOffset}px,
-              ${yOffset}px,
-              ${zOffset}px
-            ) ${nTransform}`,
-          height: `${tileSize}px`,
-          width: `${tileSize}px`,
-          transformOrigin: anchor,
-          backgroundColor: colorsNatural[z],
-          willChange: 'transform',
-          boxShadow: 'inset 0 0 0 1px #334156',
-        }}
-      />
-      {/* this is sort of like a mask, so tiles behind angled tiles don't show through*/}
-      {nTransform && (
-        <div
-          className={`absolute `}
-          style={{
-            transform: `
-            translate3d(
-              ${xOffset}px,
-              ${yOffset}px,
-              ${zOffset}px
-            )`,
-            height: `${tileSize}px`,
-            width: `${tileSize}px`,
-            transformOrigin: anchor,
-            // background: colorsNatural[z],
-            background: '#334156',
-            willChange: 'transform',
-          }}
-        />
-      )}
-      <div
-        className={`absolute `}
-        style={{
-          height: `${tileSize}px`,
-          width: `${tileSize}px`,
-          transform: `translate3d(
-            ${xOffset}px,
-            ${yOffset}px,
-            ${zOffset}px
-          ) rotateX(90deg) scaleY(${zBase})`,
-          transformOrigin: 'bottom',
-          willChange: 'transform',
-          background: '#334156',
-          // background: colord(colorsNatural[z])
-          //   .rotate(-20)
-          //   .desaturate(0.2)
-          //   .darken(0.2)
-          //   .toHex(),
-          // opacity: 0,
-        }}
-      />
-      <div
-        className={`absolute `}
-        style={{
-          height: `${tileSize}px`,
-          width: `${tileSize}px`,
-          // opacity: 0,
-          transform: `translate3d(
-            ${xOffset}px,
-            ${yOffset}px,
-            ${zOffset}px
-          ) rotateY(90deg) scaleX(${zBase}) translateX(100%)`,
-          transformOrigin: 'right',
-          willChange: 'transform',
-          // background: colord(colorsNatural[z]).rotate(20).lighten(0.2).toHex(),
-          background: '#334156',
-        }}
-      />
-    </>
-  );
-}
-
-generateGround(levels, undefined, tiles);
-const start = groundToData(generateGround(levels, undefined, tiles));
-
+generateExpandedGround(levels, undefined, tiles);
+const start = groundToData(generateExpandedGround(levels, undefined, tiles));
 export function DemoThree() {
   const [ground, setGround] = useState(start);
 
@@ -200,27 +50,37 @@ export function DemoThree() {
   if (windowSize[0] === 0) return null;
 
   return (
-    <div className="parent fixed inset-0 flex items-center justify-center bg-slate-800">
-      <div
-        className="isometric"
-        style={{
-          height: `${55}vmin`,
-          width: `${55}vmin`,
-        }}
-      >
-        {ground.map(([x, y, z, n]) => {
-          return (
-            <Tile
-              key={x + ',' + y}
-              neighbors={n}
-              tileSize={tileSize}
-              x={x}
-              y={y}
-              z={z}
-            />
-          );
-        })}
+    <>
+      <div className="parent fixed inset-0 flex items-center justify-center bg-slate-800 filter">
+        <div
+          className="isometric"
+          style={{
+            height: `${55}vmin`,
+            width: `${55}vmin`,
+          }}
+        >
+          {ground.map(([x, y, z, n]) => {
+            return (
+              <Tile
+                key={x + ',' + y}
+                neighbors={n}
+                tileSize={tileSize}
+                x={x}
+                y={y}
+                z={z}
+              />
+            );
+          })}
+        </div>
       </div>
-    </div>
+      <svg display="none">
+        <defs>
+          <filter id="turb">
+            <feTurbulence baseFrequency="0.2" numOctaves="5" />
+            <feDisplacementMap in="SourceGraphic" scale="3" />
+          </filter>
+        </defs>
+      </svg>
+    </>
   );
 }

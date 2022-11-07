@@ -1,30 +1,28 @@
-// next:
-// - [ ] Figure out math for parameters.
-// - [ ] drag and load in new tiles from any direction.
-// - [ ] add basic side faces.
-export const colors = [
-  '#eff',
-  '#ef6',
-  '#cafa6e',
-  '#82ea7f',
-  '#1ed693',
-  '#00c0a4',
-  '#00a8ae',
+import { colord, extend } from 'colord';
+import mixPlugin from 'colord/plugins/mix';
+extend([mixPlugin]);
+
+export const colorsNatural = [
+  'hsla(330 100% 80%)',
+  'hsla(280 100% 90%)',
+  'hsla(250 10% 100%)',
+  'hsla(170 60% 40%)',
+  'hsla(110 45% 60%)',
+  'hsla(90 65% 70%)',
+  'hsla(60 75% 75%)',
+  'hsla(200 80% 65%)',
   '#008fb0',
-  '#0075a6',
-  '#005b93',
   '#0c4278',
 ].reverse();
 
-export const colorsNatural = [
-  '#eff',
-  '#cdd',
-  '#899',
-  '#8b9',
-  '#82ea7f',
-  '#1ed693',
-  '#bb9',
-  '#00a8ae',
-  '#008fb0',
-  '#0c4278',
-].reverse();
+export function getColorFromZ(z: number, offset: number) {
+  // interpolate non-integer z values
+  if (offset) {
+    // return colorsNatural[z + 1];
+    const colorFloor = colord(colorsNatural[z]);
+    const colorCeil = colord(colorsNatural[z + 1]);
+    return colorFloor.mix(colorCeil, offset).toHex();
+  }
+
+  return colorsNatural[z];
+}

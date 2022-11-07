@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Ground, generateGround, groundToData } from './ground';
+import { Ground, generateExpandedGround, groundToData } from './ground';
 
 export function useAnimateOnInterval(
   set: (tiles: Ground) => void,
@@ -13,7 +13,7 @@ export function useAnimateOnInterval(
   useEffect(() => {
     interval.current = setInterval(() => {
       if (toggle.current === 0) {
-        set(groundToData(generateGround(levels, undefined, tiles)));
+        set(groundToData(generateExpandedGround(levels, undefined, tiles)));
       }
 
       if (toggle.current >= hold) {

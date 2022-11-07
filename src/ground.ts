@@ -31,10 +31,34 @@ export function groundToTiles(ground: string) {
     .map((row) => row.split('').map((tile) => parseInt(tile)));
 }
 
-export type Tile = [x: number, y: number, z: number, ramp: string];
+export type Tile = [x: number, y: number, z: number, neighbors: string];
 export type Ground = Tile[];
 
 export function generateGround(
+  levels = 10,
+  rand = defaultGenerator,
+  perimeter = 10,
+  forceZ: number | undefined = undefined,
+) {
+  const noiseGenerator = makeNoise2D(rand);
+  let ground = '';
+  for (let i = 0; i < perimeter; i++) {
+    let row1 = '';
+    for (let j = 0; j < perimeter; j++) {
+      const v = noiseGenerator(i, j);
+      if (forceZ !== undefined) {
+        row1 += forceZ;
+      } else {
+        const val = Math.floor(((v + 1) / 2) * levels);
+        row1 += val;
+      }
+    }
+    ground += `${row1}\n`;
+  }
+  return ground;
+}
+
+export function generateExpandedGround(
   levels = 10,
   rand = defaultGenerator,
   perimeter = 10,
@@ -66,25 +90,58 @@ export function generateGround(
   return ground;
 }
 
-function wiggle(v: number, g: () => number, mod = 2) {
+function wiggle(v: number, g: () => number, mod = 1) {
   const nv = Math.min(9, Math.max(0, Math.floor(v + (mod * g() - 0.5))));
   if (nv < 3) return 2;
-  if (nv < 5) return 4;
-
   return nv;
 }
 
-const cliffThreshold = 3;
-function getNeighbors(x: number, y: number, rows: string[], z: number): string {
+const cliffThreshold = 10;
+function getNeighbors(
+  x: number,
+  y: number,
+  rows: string[],
+  z: number,
+  diff = cliffThreshold,
+): string {
+  /*
+   *
+   *  ..2..
+   *  .1.3.
+   *  8...4
+   *  .7.5.
+   *  ..6..
+   *
+   */
   const lValDiff = Number(rows[y][x - 1]) - z;
-  const l = lValDiff > 0 && lValDiff < cliffThreshold ? 1 : 0;
+  const l = lValDiff > 0 && lValDiff < diff;
+
+  const luValDiff = Number(rows[y - 1]?.[x - 1]) - z;
+  const lu = luValDiff > 0 && luValDiff < diff;
+
   const uValDiff = Number(rows[y - 1]?.[x]) - z;
-  const u = uValDiff > 0 && uValDiff < cliffThreshold ? 1 : 0;
+  const u = uValDiff > 0 && uValDiff < diff;
+
+  const ruValDiff = Number(rows[y - 1]?.[x + 1]) - z;
+  const ru = ruValDiff > 0 && ruValDiff < diff;
+
   const rValDiff = Number(rows[y][x + 1]) - z;
-  const r = rValDiff > 0 && rValDiff < cliffThreshold ? 1 : 0;
+  const r = rValDiff > 0 && rValDiff < diff;
+
+  const rdValDiff = Number(rows[y + 1]?.[x + 1]) - z;
+  const rd = rdValDiff > 0 && rdValDiff < diff;
+
   const dValDiff = Number(rows[y + 1]?.[x]) - z;
-  const d = dValDiff > 0 && dValDiff < cliffThreshold ? 1 : 0;
-  return `${l}${u}${r}${d}`;
+  const d = dValDiff > 0 && dValDiff < diff;
+
+  const ldValDiff = Number(rows[y + 1]?.[x - 1]) - z;
+  const ld = ldValDiff > 0 && ldValDiff < diff;
+
+  const sig = [l || ld || d, l || lu || u, u || ru || r, r || rd || d]
+    .map((v) => (v ? 1 : 0))
+    .join('');
+
+  return sig;
 }
 
 export function groundToData(ground: string): Ground {

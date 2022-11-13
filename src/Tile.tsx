@@ -150,7 +150,7 @@ function getRamp({
   return nData;
 }
 
-function Face({ z, tileSize, style }: any) {
+function Face({ z, tileSize, style, debug }: any) {
   return (
     <div
       className={`absolute transition-all`}
@@ -158,9 +158,15 @@ function Face({ z, tileSize, style }: any) {
         height: `${tileSize}px`,
         width: `${tileSize}px`,
         transitionDuration: `${100 + Math.abs(floorHeight + z) * 50}ms`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: 10,
         ...style,
       }}
-    />
+    >
+      {debug}
+    </div>
   );
 }
 
@@ -211,6 +217,7 @@ export function Tile({
     <>
       {/* ground */}
       <Face
+        debug={`${z}${neighbors}`}
         style={{
           backgroundColor:
             fill || getColorFromZ(z, nOffset + (nTransform ? 0.5 : 0)),

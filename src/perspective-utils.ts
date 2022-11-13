@@ -16,3 +16,7 @@ export function setIsoCssVars() {
     `-${BASE_Z}deg`,
   );
 }
+
+export function updateBaseX(degrees: number) {
+  document.documentElement.style.setProperty('--base-x', `${degrees}deg`);
+}

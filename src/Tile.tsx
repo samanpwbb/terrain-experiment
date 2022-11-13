@@ -4,6 +4,10 @@ import { scale, RADIAN_TO_ANGLE } from './perspective-utils';
 const floorHeight = 1;
 const stepSize = 0.25;
 
+const oneUpRamps = new Set(['1000', '0010', '0100', '0001']);
+const twoUpRamps = new Set(['1100', '0110', '1001', '0011']);
+const threeUpRamps = new Set(['1110', '1101', '1011', '0111']);
+
 function getRamp({
   n,
   tileSize,
@@ -34,119 +38,127 @@ function getRamp({
 
   if (n === '1111') {
     nData.nOffset = 1;
+    return nData;
   }
 
   // one-up ramps
-  const adjacent = 1.41421356237 * tileSize * 0.5;
-  const opposite = zTile;
-  const singleCornerAngle = Math.asin(opposite / adjacent) * RADIAN_TO_ANGLE;
-  if (n === '1000') {
-    nData.showSurface = true;
-    nData.clipPath = 'polygon(0% 100%, 100% 100%, 0% 0%)';
-    // TODO: Figure out the math behind skew.
-    // TODO: These transforms are wrong if the stepSize is not 0.25.
-    const skew = -5;
-    nData.nTransform = `skew(${skew}deg, ${skew}deg) rotate3d(-1, -1, 0, -${
-      singleCornerAngle + skew
-    }deg) scale(1.1)`;
-  }
+  if (oneUpRamps.has(n)) {
+    const adjacent = 1.41421356237 * tileSize * 0.5;
+    const opposite = zTile;
+    const singleCornerAngle = Math.atan(opposite / adjacent) * RADIAN_TO_ANGLE;
+    const squareDiagonal = 1.41421356237 * tileSize;
+    const desiredLength = Math.hypot(zTile, squareDiagonal / 2);
+    const xScale = desiredLength / (tileSize / 2);
+    if (n === '0100') {
+      nData.showSurface = true;
+      nData.clipPath = 'polygon(100% 0, 0 50%, 100% 100%)';
+      nData.nTransform = `rotateZ(45deg) rotateY(${singleCornerAngle}deg) scaleY(1.41421356237) scaleX(${
+        xScale / 2
+      }) translateX(-50%)`;
+    }
 
-  if (n === '0010') {
-    nData.showSurface = true;
-    nData.clipPath = 'polygon(100% 0%, 0% 0, 100% 100%)';
-    const skew = -5;
-    nData.nTransform = `skew(${skew}deg, ${skew}deg) rotate3d(1, 1, 0, -${
-      singleCornerAngle + skew
-    }deg) scale(1.1)`;
-  }
+    if (n === '1000') {
+      nData.showSurface = true;
+      nData.clipPath = 'polygon(100% 0, 0 50%, 100% 100%)';
+      nData.nTransform = `rotateZ(-45deg) rotateY(${singleCornerAngle}deg) scaleY(1.41421356237) scaleX(${
+        xScale / 2
+      }) translateX(-50%)`;
+    }
 
-  if (n === '0100') {
-    nData.showSurface = true;
-    nData.clipPath = 'polygon(0% 0%, 100% 0, 0% 100%)';
-    const skew = 5;
-    nData.nTransform = `skew(${skew}deg, ${skew}deg) rotate3d(-1, 1, 0, ${
-      singleCornerAngle + skew
-    }deg) scale(1.1)`;
-  }
+    if (n === '0010') {
+      nData.showSurface = true;
+      nData.clipPath = 'polygon(100% 0, 0 50%, 100% 100%)';
+      nData.nTransform = `rotateZ(135deg) rotateY(${singleCornerAngle}deg) scaleY(1.41421356237) scaleX(${
+        xScale / 2
+      }) translateX(-50%)`;
+    }
 
-  if (n === '0001') {
-    nData.showSurface = true;
-    nData.clipPath = 'polygon(100% 100%, 100% 0, 0 100%)';
-    const skew = -4;
-    nData.nTransform = `skew(${skew}deg, ${skew}deg) rotate3d(1, -1, 0, ${
-      singleCornerAngle + skew
-    }deg) scale(1.1)`;
+    if (n === '0001') {
+      nData.showSurface = true;
+      nData.clipPath = 'polygon(100% 0, 0 50%, 100% 100%)';
+      nData.nTransform = `rotateZ(225deg) rotateY(${singleCornerAngle}deg) scaleY(1.41421356237) scaleX(${
+        xScale / 2
+      }) translateX(-50%)`;
+    }
+    return nData;
   }
 
   // two-up ramps
-  const hypot = Math.hypot(tileSize, zTile);
-  const scale = hypot / tileSize;
-  const angle = Math.asin(zTile / hypot) * RADIAN_TO_ANGLE;
+  if (twoUpRamps.has(n)) {
+    const hypot = Math.hypot(tileSize, zTile);
+    const scale = hypot / tileSize;
+    const angle = Math.asin(zTile / hypot) * RADIAN_TO_ANGLE;
 
-  if (n === '1100') {
-    nData.nTransform = `rotateY(${angle}deg) scaleX(${scale})`;
-    nData.anchor = 'right';
-  }
-  if (n === '0110') {
-    nData.nTransform = `rotateX(-${angle}deg) scaleY(${scale})`;
-    nData.anchor = 'bottom';
-  }
-  if (n === '1001') {
-    nData.nTransform = `rotateX(${angle}deg) scaleY(${scale})`;
-    nData.anchor = 'top';
-  }
-  if (n === '0011') {
-    nData.nTransform = `rotateY(-${angle}deg) scaleX(${scale})`;
-    nData.anchor = 'left';
+    if (n === '1100') {
+      nData.nTransform = `rotateY(${angle}deg) scaleX(${scale})`;
+      nData.anchor = 'right';
+    }
+    if (n === '0110') {
+      nData.nTransform = `rotateX(-${angle}deg) scaleY(${scale})`;
+      nData.anchor = 'bottom';
+    }
+    if (n === '1001') {
+      nData.nTransform = `rotateX(${angle}deg) scaleY(${scale})`;
+      nData.anchor = 'top';
+    }
+    if (n === '0011') {
+      nData.nTransform = `rotateY(-${angle}deg) scaleX(${scale})`;
+      nData.anchor = 'left';
+    }
+    return nData;
   }
 
   // three-up ramps
-  const z = zStep * tileSize;
-  if (n === '1110') {
-    nData.surfaceClipPath = 'polygon(100% 0%, 0% 100%, 0% 0%)';
-    nData.showSurface = true;
-    nData.surfaceOffset = 1;
+  if (threeUpRamps.has(n)) {
+    const adjacent = 1.41421356237 * tileSize * 0.5;
+    const opposite = zTile;
+    const singleCornerAngle = Math.atan(opposite / adjacent) * RADIAN_TO_ANGLE;
+    const squareDiagonal = 1.41421356237 * tileSize;
+    const desiredLength = Math.hypot(zTile, squareDiagonal / 2);
+    const xScale = desiredLength / (tileSize / 2);
 
-    const skew = 5;
-    nData.nTransform = `translateZ(${z}px) skew(${skew}deg, ${skew}deg) rotate3d(1, -1, 0, -${
-      singleCornerAngle - skew
-    }deg) scale(1.1)`;
-    nData.clipPath = 'polygon(100% 0%, 0 100%, 100% 100%)';
+    const z = zStep * tileSize;
+    if (n === '1110') {
+      nData.surfaceClipPath = 'polygon(100% 0%, 0% 100%, 0% 0%)';
+      nData.showSurface = true;
+      nData.surfaceOffset = 1;
+      nData.clipPath = 'polygon(0% 0, 100% 50%, 0% 100%)';
+      nData.nTransform = `translateZ(${z}px) rotateZ(45deg) rotateY(${singleCornerAngle}deg) scaleY(1.41421356237) scaleX(${
+        xScale / 2
+      }) translateX(50%)`;
+    }
+    if (n === '1101') {
+      nData.surfaceClipPath = 'polygon(0% 100%, 100% 100%, 0% 0%)';
+      nData.showSurface = true;
+      nData.surfaceOffset = 1;
+      nData.clipPath = 'polygon(0% 0, 100% 50%, 0% 100%)';
+      nData.nTransform = `translateZ(${z}px) rotateZ(-45deg) rotateY(${singleCornerAngle}deg) scaleY(1.41421356237) scaleX(${
+        xScale / 2
+      }) translateX(50%)`;
+    }
+    if (n === '1011') {
+      nData.surfaceClipPath = 'polygon(100% 0, 0 100%, 100% 100%)';
+      nData.showSurface = true;
+      nData.surfaceOffset = 1;
+      nData.clipPath = 'polygon(0% 0, 100% 50%, 0% 100%)';
+      nData.nTransform = `translateZ(${z}px) rotateZ(225deg) rotateY(${singleCornerAngle}deg) scaleY(1.41421356237) scaleX(${
+        xScale / 2
+      }) translateX(50%)`;
+    }
+    if (n === '0111') {
+      nData.surfaceClipPath = 'polygon(100% 100%, 0 0, 100% 0)';
+      nData.showSurface = true;
+      nData.surfaceOffset = 1;
+      nData.clipPath = 'polygon(0% 0, 100% 50%, 0% 100%)';
+      nData.nTransform = `translateZ(${z}px) rotateZ(135deg) rotateY(${singleCornerAngle}deg) scaleY(1.41421356237) scaleX(${
+        xScale / 2
+      }) translateX(50%)`;
+    }
+
+    return nData;
   }
-  if (n === '1101') {
-    nData.surfaceClipPath = 'polygon(0% 100%, 100% 100%, 0% 0%)';
-    nData.showSurface = true;
-    nData.surfaceOffset = 1;
 
-    const skew = 5;
-    nData.nTransform = `translateZ(${z}px) skew(-${skew}deg, -${skew}deg) rotate3d(-1, -1, 0, -${
-      singleCornerAngle - skew
-    }deg) scale(1.15)`;
-    nData.clipPath = 'polygon(100% 100%, 100% 0%, 0% 0%)';
-  }
-  if (n === '1011') {
-    nData.surfaceClipPath = 'polygon(100% 0, 0 100%, 100% 100%)';
-    nData.showSurface = true;
-    nData.surfaceOffset = 1;
-
-    const skew = 5;
-    nData.nTransform = `translateZ(${z}px) skew(-${skew}deg, -${skew}deg) rotate3d(-1, 1, 0, -${
-      singleCornerAngle - skew
-    }deg) scale(1.15)`;
-    nData.clipPath = 'polygon(100% 0, 0 100%, 0% 0%)';
-  }
-  if (n === '0111') {
-    nData.surfaceClipPath = 'polygon(100% 100%, 0 0, 100% 0)';
-    nData.showSurface = true;
-    nData.surfaceOffset = 1;
-
-    const skew = 5;
-    nData.nTransform = `translateZ(${z}px) skew(-${skew}deg, -${skew}deg) rotate3d(1, 1, 0, -${
-      singleCornerAngle - skew
-    }deg) scale(1.15)`;
-    nData.clipPath = 'polygon(100% 100%, 0% 100%, 0 0)';
-  }
-
+  // 1100, 0011 which are not done yet
   return nData;
 }
 
@@ -217,7 +229,7 @@ export function Tile({
     <>
       {/* ground */}
       <Face
-        debug={`${z}${neighbors}`}
+        // debug={`${z}${neighbors}`}
         style={{
           backgroundColor:
             fill || getColorFromZ(z, nOffset + (nTransform ? 0.5 : 0)),

@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { generateExpandedGround, Ground, groundToData } from './ground';
-import { setIsoCssVars } from './perspective-utils';
+import { setIsoCssVars, updateBaseX } from './perspective-utils';
 import { useWindowSize } from './useWindowSize';
 import { Tile } from './Tile';
 
 /* next
- * - [ ] Fix the math.
- * - [ ] Click to raise / shift+click to lower.
+ * - [x] Fix the math.
  * - [ ] Handle 1010, 0101
- * - [ ] If both L and U are not ramps, then the tile is flat even if LU is a ramp.
  * - [ ] Fix triangular gaps where there's no mask face.
+ * - [ ] Click to raise / shift+click to lower.
+ * - [ ] If both L and U are not ramps, then the tile is flat even if LU is a ramp.
  * - [ ] Water level overlay
  * - [ ] Camera controls (perspective, perspective origin).
  * - [ ] Nice animations.
@@ -35,7 +35,7 @@ import { Tile } from './Tile';
  */
 
 const tiles = 5;
-const levels = 8;
+const levels = 10;
 const baseTileSize = 20;
 
 setIsoCssVars();
@@ -62,19 +62,39 @@ export function DemoThree() {
   return (
     <>
       <div className="parent fixed inset-0 flex items-center justify-center bg-slate-800 filter">
-        <div
-          className="fixed left-20 bottom-10 cursor-pointer bg-white"
-          onClick={() => setActive((v) => (v < count - 1 ? v + 1 : 0))}
-        >
-          Next {active}
+        <div className="padding-5 fixed bottom-10 left-10 flex items-center justify-center bg-white">
+          <div
+            className="mr-2 cursor-pointer bg-white px-2 py-1"
+            onClick={() => setActive((v) => (v < count - 1 ? v + 1 : 0))}
+          >
+            Next
+          </div>
+          <span className="opacity-50">{active}</span>
+          <div
+            className="ml-2 cursor-pointer bg-white px-2 py-1"
+            onClick={() => setActive((v) => (v > 0 ? v - 1 : count - 1))}
+          >
+            Prev
+          </div>
+          <div
+            className="ml-2 cursor-pointer bg-white px-2 py-1"
+            onClick={() => updateBaseX(30)}
+          >
+            30°
+          </div>
+          <div
+            className="ml-2 cursor-pointer bg-white px-2 py-1"
+            onClick={() => updateBaseX(45)}
+          >
+            45°
+          </div>
+          <div
+            className="ml-2 cursor-pointer bg-white px-2 py-1"
+            onClick={() => updateBaseX(57.2958)}
+          >
+            57.2958°
+          </div>
         </div>
-        <div
-          className="fixed left-10 bottom-10 cursor-pointer bg-white"
-          onClick={() => setActive((v) => (v > 0 ? v - 1 : count - 1))}
-        >
-          Prev
-        </div>
-
         <div
           className="isometric"
           style={{

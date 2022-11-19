@@ -65,17 +65,17 @@ export function DemoThree() {
       <div className="parent fixed inset-0 flex items-center justify-center bg-slate-800 filter">
         <div className="padding-5 fixed bottom-10 left-10 flex items-center justify-center bg-white">
           <div
-            className="mr-2 cursor-pointer bg-white px-2 py-1"
-            onClick={() => setActive((v) => (v < count - 1 ? v + 1 : 0))}
-          >
-            Next
-          </div>
-          <span className="opacity-50">{active}</span>
-          <div
             className="ml-2 cursor-pointer bg-white px-2 py-1"
             onClick={() => setActive((v) => (v > 0 ? v - 1 : count - 1))}
           >
             Prev
+          </div>
+          <span className="opacity-50">{active}</span>
+          <div
+            className="mr-2 cursor-pointer bg-white px-2 py-1"
+            onClick={() => setActive((v) => (v < count - 1 ? v + 1 : 0))}
+          >
+            Next
           </div>
           <div
             className="ml-2 cursor-pointer bg-white px-2 py-1"

@@ -6,13 +6,14 @@ import { Tile } from './Tile';
 
 /* next
  * - [x] Fix the math.
+ * - [ ] Don't use rotation.
  * - [ ] Handle 1010, 0101
  * - [ ] Fix triangular gaps where there's no mask face.
  * - [ ] Click to raise / shift+click to lower.
  * - [ ] If both L and U are not ramps, then the tile is flat even if LU is a ramp.
  * - [ ] Water level overlay
  * - [ ] Camera controls (perspective, perspective origin).
- * - [ ] Nice animations.
+ * - [ ] Nice animations by giving everything a clip (so we transition the clips).
  * - [ ] Jitter the vertexes.
  *
  * Done:
@@ -34,9 +35,9 @@ import { Tile } from './Tile';
  * - [ ] Allow ramps to angle up to two tiles not just one.
  */
 
-const tiles = 5;
+const tiles = 4;
 const levels = 10;
-const baseTileSize = 20;
+const baseTileSize = 30;
 
 setIsoCssVars();
 

@@ -3,6 +3,7 @@ import { scale, RADIAN_TO_ANGLE } from './perspective-utils';
 
 const floorHeight = 1;
 const stepSize = 0.25;
+const SQ2 = 1.41421356237;
 
 const oneUpRamps = new Set(['1000', '0010', '0100', '0001']);
 const twoUpRamps = new Set(['1100', '0110', '1001', '0011']);
@@ -43,43 +44,60 @@ function getRamp({
 
   // one-up ramps
   if (oneUpRamps.has(n)) {
-    const adjacent = 1.41421356237 * tileSize * 0.5;
+    const adjacent = SQ2 * tileSize * 0.5;
     const opposite = zTile;
     const singleCornerAngle = Math.atan(opposite / adjacent) * RADIAN_TO_ANGLE;
-    const squareDiagonal = 1.41421356237 * tileSize;
+    const squareDiagonal = SQ2 * tileSize;
     const desiredLength = Math.hypot(zTile, squareDiagonal / 2);
     const xScale = desiredLength / (tileSize / 2);
+    // up
     if (n === '0100') {
       nData.showSurface = true;
       nData.clipPath = 'polygon(100% 0, 0 50%, 100% 100%)';
-      nData.nTransform = `rotateZ(45deg) rotateY(${singleCornerAngle}deg) scaleY(1.41421356237) scaleX(${
-        xScale / 2
-      }) translateX(-50%)`;
+      nData.nTransform = `
+      rotateZ(45deg)
+      rotateY(${singleCornerAngle}deg)
+      scaleY(${SQ2})
+      scaleX(${xScale / 2})
+      translateX(-50%)`;
     }
 
-    if (n === '1000') {
-      nData.showSurface = true;
-      nData.clipPath = 'polygon(100% 0, 0 50%, 100% 100%)';
-      nData.nTransform = `rotateZ(-45deg) rotateY(${singleCornerAngle}deg) scaleY(1.41421356237) scaleX(${
-        xScale / 2
-      }) translateX(-50%)`;
-    }
-
-    if (n === '0010') {
-      nData.showSurface = true;
-      nData.clipPath = 'polygon(100% 0, 0 50%, 100% 100%)';
-      nData.nTransform = `rotateZ(135deg) rotateY(${singleCornerAngle}deg) scaleY(1.41421356237) scaleX(${
-        xScale / 2
-      }) translateX(-50%)`;
-    }
-
+    // down
     if (n === '0001') {
       nData.showSurface = true;
-      nData.clipPath = 'polygon(100% 0, 0 50%, 100% 100%)';
-      nData.nTransform = `rotateZ(225deg) rotateY(${singleCornerAngle}deg) scaleY(1.41421356237) scaleX(${
-        xScale / 2
-      }) translateX(-50%)`;
+      nData.clipPath = 'polygon(0% 0, 100% 50%, 0% 100%)';
+      nData.nTransform = `
+      rotateZ(45deg)
+      rotateY(-${singleCornerAngle}deg)
+      scaleY(${SQ2})
+      scaleX(${xScale / 2})
+      translateX(50%)`;
     }
+
+    // left
+    if (n === '1000') {
+      nData.showSurface = true;
+      nData.clipPath = 'polygon(0 0%, 50% 100%, 100% 0%)';
+      nData.nTransform = `
+      rotateZ(45deg)
+      rotateX(${singleCornerAngle}deg)
+      scaleX(${SQ2})
+      scaleY(${xScale / 2})
+      translateY(50%)`;
+    }
+
+    // right
+    if (n === '0010') {
+      nData.showSurface = true;
+      nData.clipPath = 'polygon(0 100%, 50% 0%, 100% 100%)';
+      nData.nTransform = `
+      rotateZ(45deg)
+      rotateX(-${singleCornerAngle}deg)
+      scaleX(${SQ2})
+      scaleY(${xScale / 2})
+      translateY(-50%)`;
+    }
+
     return nData;
   }
 
@@ -115,44 +133,64 @@ function getRamp({
     const singleCornerAngle = Math.atan(opposite / adjacent) * RADIAN_TO_ANGLE;
     const squareDiagonal = 1.41421356237 * tileSize;
     const desiredLength = Math.hypot(zTile, squareDiagonal / 2);
-    const xScale = desiredLength / (tileSize / 2);
+    const lengthScale = desiredLength / (tileSize / 2);
+
+    nData.showSurface = true;
+    nData.surfaceOffset = 1;
 
     const z = zStep * tileSize;
+
+    // bottom
     if (n === '1110') {
       nData.surfaceClipPath = 'polygon(100% 0%, 0% 100%, 0% 0%)';
-      nData.showSurface = true;
-      nData.surfaceOffset = 1;
       nData.clipPath = 'polygon(0% 0, 100% 50%, 0% 100%)';
-      nData.nTransform = `translateZ(${z}px) rotateZ(45deg) rotateY(${singleCornerAngle}deg) scaleY(1.41421356237) scaleX(${
-        xScale / 2
-      }) translateX(50%)`;
+      nData.nTransform = `
+      translateZ(${z}px)
+      rotateZ(45deg)
+      rotateY(${singleCornerAngle}deg)
+      scaleY(${SQ2})
+      scaleX(${lengthScale / 2})
+      translateX(50%)`;
     }
-    if (n === '1101') {
-      nData.surfaceClipPath = 'polygon(0% 100%, 100% 100%, 0% 0%)';
-      nData.showSurface = true;
-      nData.surfaceOffset = 1;
-      nData.clipPath = 'polygon(0% 0, 100% 50%, 0% 100%)';
-      nData.nTransform = `translateZ(${z}px) rotateZ(-45deg) rotateY(${singleCornerAngle}deg) scaleY(1.41421356237) scaleX(${
-        xScale / 2
-      }) translateX(50%)`;
-    }
+
+    // top
     if (n === '1011') {
       nData.surfaceClipPath = 'polygon(100% 0, 0 100%, 100% 100%)';
-      nData.showSurface = true;
-      nData.surfaceOffset = 1;
-      nData.clipPath = 'polygon(0% 0, 100% 50%, 0% 100%)';
-      nData.nTransform = `translateZ(${z}px) rotateZ(225deg) rotateY(${singleCornerAngle}deg) scaleY(1.41421356237) scaleX(${
-        xScale / 2
-      }) translateX(50%)`;
+      nData.clipPath = 'polygon(100% 0, 0% 50%, 100% 100%)';
+      nData.nTransform = `
+      translateZ(${z}px)
+      rotateZ(45deg)
+      rotateY(-${singleCornerAngle}deg)
+      scaleY(${SQ2})
+      scaleX(${lengthScale / 2})
+      translateX(-50%)
+      `;
     }
+
+    // left
+    if (n === '1101') {
+      nData.surfaceClipPath = 'polygon(0% 100%, 100% 100%, 0% 0%)';
+      nData.clipPath = 'polygon(0 100%, 50% 0, 100% 100%)';
+      nData.nTransform = `
+      translateZ(${z}px)
+      rotateZ(45deg)
+      rotateX(${singleCornerAngle}deg)
+      scaleX(${SQ2})
+      scaleY(${lengthScale / 2})
+      translateY(-50%)`;
+    }
+
+    // right
     if (n === '0111') {
       nData.surfaceClipPath = 'polygon(100% 100%, 0 0, 100% 0)';
-      nData.showSurface = true;
-      nData.surfaceOffset = 1;
-      nData.clipPath = 'polygon(0% 0, 100% 50%, 0% 100%)';
-      nData.nTransform = `translateZ(${z}px) rotateZ(135deg) rotateY(${singleCornerAngle}deg) scaleY(1.41421356237) scaleX(${
-        xScale / 2
-      }) translateX(50%)`;
+      nData.clipPath = 'polygon(0 0%, 50% 100%, 100% 0%)';
+      nData.nTransform = `
+      translateZ(${z}px)
+      rotateZ(45deg)
+      rotateX(-${singleCornerAngle}deg)
+      scaleX(${SQ2})
+      scaleY(${lengthScale / 2})
+      translateY(50%)`;
     }
 
     return nData;

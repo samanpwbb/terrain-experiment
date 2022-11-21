@@ -63,7 +63,7 @@ export function DemoThree() {
   return (
     <>
       <div className="parent fixed inset-0 flex items-center justify-center bg-slate-800">
-        <div className="padding-5 fixed bottom-10 left-10 flex items-center justify-center bg-white">
+        <div className="padding-5 fixed bottom-5 left-5 z-10 flex items-center justify-center bg-white">
           <div
             className="cursor-pointer bg-white px-2 py-1"
             onClick={() => setActive((v) => (v > 0 ? v - 1 : count - 1))}
@@ -76,6 +76,12 @@ export function DemoThree() {
             onClick={() => setActive((v) => (v < count - 1 ? v + 1 : 0))}
           >
             Next
+          </div>
+          <div
+            className="ml-2 cursor-pointer bg-white px-2 py-1"
+            onClick={() => updateBaseX(0)}
+          >
+            0°
           </div>
           <div
             className="ml-2 cursor-pointer bg-white px-2 py-1"
@@ -100,8 +106,8 @@ export function DemoThree() {
           <div
             className="isometric"
             style={{
-              height: `${55}vmin`,
-              width: `${55}vmin`,
+              height: `${68}vmin`,
+              width: `${68}vmin`,
             }}
           >
             {terrains[active].map(([x, y, z, n]) => {
@@ -119,7 +125,7 @@ export function DemoThree() {
           </div>
         </div>
       </div>
-      <svg display="none">
+      <svg>
         <defs>
           <filter id="turb">
             <feTurbulence baseFrequency="0.15" numOctaves="4" />

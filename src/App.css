@@ -7,8 +7,7 @@
 
 .parent {
   /* if we want perspective */
-  perspective: 1250vmin;
-  /* perspective-origin: 50% 33%; */
+  /* perspective: 1250vmin; */
   transform-style: preserve-3d;
   transition: all 0.5s ease-in-out;
 }

@@ -18,7 +18,17 @@ export function groundToTiles(ground: string) {
     .map((row) => row.split('').map((tile) => parseInt(tile)));
 }
 
-export type Tile = [x: number, y: number, z: number, neighbors: string];
+export type Tile = [
+  x: number,
+  y: number,
+  z: number,
+  signature: number,
+  lNeighbor: number,
+  uNeighbor: number,
+  rNeighbor: number,
+  dNeighbor: number,
+];
+
 export type Ground = Tile[];
 
 export function generateGround(
@@ -135,16 +145,16 @@ function getEntry(
   const ld = ldDiff > 0 && ldDiff < diff;
 
   // prettier-ignore
-  const sig = [
+  const sig = +('0b' + [
     (l || ld || d),
     (l || lu || u),
     (u || ru || r),
     (r || rd || d),
   ]
     .map((v) => (v ? 1 : 0))
-    .join('');
+    .join(''));
 
-  if (sig === '1111') {
+  if (sig === 0b1111) {
     // add all neighbors to invalid positions, we need to re-calc them
     // basically this has a smoothing effect.
     invalidPositions.add([x - 1, y - 1].join(','));
@@ -158,7 +168,7 @@ function getEntry(
     return getEntry(x, y, z + 1, neighborZs, invalidPositions);
   }
 
-  return [x, y, z, sig];
+  return [x, y, z, sig, lDiff, uDiff, rDiff, dDiff];
 }
 
 export function groundToData(ground: string): Ground {

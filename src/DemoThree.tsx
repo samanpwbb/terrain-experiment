@@ -5,10 +5,8 @@ import { useWindowSize } from './useWindowSize';
 import { Tile } from './Tile';
 
 /* next
- * - [x] Fix the math.
- * - [ ] Don't use rotation.
  * - [ ] Handle 1010, 0101
- * - [ ] Fix triangular gaps where there's no mask face.
+ * - [ ] Only draw cliffs where there are cliffs.
  * - [ ] Click to raise / shift+click to lower.
  * - [ ] If both L and U are not ramps, then the tile is flat even if LU is a ramp.
  * - [ ] Water level overlay
@@ -17,6 +15,8 @@ import { Tile } from './Tile';
  * - [ ] Jitter the vertexes.
  *
  * Done:
+ * - [x] Fix the math.
+ * - [x] Don't use rotation.
  * - [x] Add more ramp styles.
  *       - no holes!
  * - [x] adjust ramp colors.
@@ -35,9 +35,9 @@ import { Tile } from './Tile';
  * - [ ] Allow ramps to angle up to two tiles not just one.
  */
 
-const tiles = 4;
+const tiles = 6;
 const levels = 10;
-const baseTileSize = 30;
+const baseTileSize = 20;
 
 setIsoCssVars();
 
@@ -53,7 +53,7 @@ for (let i = 0; i < count; i++) {
 }
 
 export function DemoThree() {
-  const [active, setActive] = useState(3);
+  const [active, setActive] = useState(6);
 
   const windowSize = useWindowSize();
   const tileSize = baseTileSize + windowSize[0] * 0.0125;
@@ -62,17 +62,17 @@ export function DemoThree() {
 
   return (
     <>
-      <div className="parent fixed inset-0 flex items-center justify-center bg-slate-800 filter">
+      <div className="parent fixed inset-0 flex items-center justify-center bg-slate-800">
         <div className="padding-5 fixed bottom-10 left-10 flex items-center justify-center bg-white">
           <div
-            className="ml-2 cursor-pointer bg-white px-2 py-1"
+            className="cursor-pointer bg-white px-2 py-1"
             onClick={() => setActive((v) => (v > 0 ? v - 1 : count - 1))}
           >
             Prev
           </div>
           <span className="opacity-50">{active}</span>
           <div
-            className="mr-2 cursor-pointer bg-white px-2 py-1"
+            className="cursor-pointer bg-white px-2 py-1"
             onClick={() => setActive((v) => (v < count - 1 ? v + 1 : 0))}
           >
             Next
@@ -96,32 +96,34 @@ export function DemoThree() {
             57.2958°
           </div>
         </div>
-        <div
-          className="isometric"
-          style={{
-            height: `${55}vmin`,
-            width: `${55}vmin`,
-          }}
-        >
-          {terrains[active].map(([x, y, z, n]) => {
-            return (
-              <Tile
-                key={x + ',' + y}
-                neighbors={n}
-                tileSize={tileSize}
-                x={x}
-                y={y}
-                z={z}
-              />
-            );
-          })}
+        <div className="filter">
+          <div
+            className="isometric"
+            style={{
+              height: `${55}vmin`,
+              width: `${55}vmin`,
+            }}
+          >
+            {terrains[active].map(([x, y, z, n]) => {
+              return (
+                <Tile
+                  key={x + ',' + y}
+                  neighbors={n}
+                  tileSize={tileSize}
+                  x={x}
+                  y={y}
+                  z={z}
+                />
+              );
+            })}
+          </div>
         </div>
       </div>
       <svg display="none">
         <defs>
           <filter id="turb">
-            <feTurbulence baseFrequency="0.2" numOctaves="5" />
-            <feDisplacementMap in="SourceGraphic" scale="3" />
+            <feTurbulence baseFrequency="0.15" numOctaves="4" />
+            <feDisplacementMap in="SourceGraphic" scale="4" />
           </filter>
         </defs>
       </svg>

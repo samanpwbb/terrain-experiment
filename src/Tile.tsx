@@ -1,7 +1,7 @@
 import { getColorFromZ } from './colors';
 import { scale, RADIAN_TO_ANGLE } from './perspective-utils';
 
-const floorHeight = 1;
+const floorHeight = 0;
 const stepSize = 0.25;
 const SQ2 = 1.41421356237;
 
@@ -54,7 +54,7 @@ function getRamp({
     const lengthScale = desiredLength / (tileSize / 2);
 
     nData.showSurface = true;
-    nData.surfaceOffset = 1;
+    nData.surfaceOffset = 0.5;
 
     const z = zStep * tileSize;
 
@@ -63,6 +63,7 @@ function getRamp({
       nData.clipPath = 'polygon(0% 0, 100% 50%, 0% 100%)';
       nData.surfaceClipPath = 'polygon(100% 0, 0% 50%, 100% 100%)';
       nData.surfaceTransform = `
+      translateZ(${z / 2}px)
       rotateZ(45deg)
       rotateY(-${singleCornerAngle}deg)
       scaleY(${SQ2})
@@ -90,6 +91,7 @@ function getRamp({
 
       nData.surfaceClipPath = 'polygon(0 0%, 50% 100%, 100% 0%)';
       nData.surfaceTransform = `
+      translateZ(${z / 2}px)
       rotateZ(45deg)
       rotateX(-${singleCornerAngle}deg)
       scaleX(${SQ2})
@@ -292,7 +294,6 @@ export function Tile({
   z: number;
   neighbors: number;
 }) {
-  // scale z by half, _every other_ int is a full step.
   const zStep = scale * stepSize;
   const zBase = floorHeight + z * zStep;
   const zOffset = zBase * tileSize;

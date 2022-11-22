@@ -1,20 +1,24 @@
 import { useState } from 'react';
-import { generateExpandedGround, Ground, groundToData } from './ground';
+import { generateExpandedGround, generateSimpleGround } from './generateData';
+import { processData, Terrain } from './processData';
 import { setIsoCssVars, updateBaseX } from './perspective-utils';
 import { useWindowSize } from './useWindowSize';
 import { Tile } from './Tile';
 
 /* next
- * - [ ] Handle 1010, 0101
- * - [ ] Only draw cliffs where there are cliffs.
+ * - [ ] Fix coloring on 0101 and 1010.
+ * - [ ] Only draw cliffs where there are cliffs, make sure cliffs cover angles.
  * - [ ] Click to raise / shift+click to lower.
- * - [ ] If both L and U are not ramps, then the tile is flat even if LU is a ramp.
+ * - [ ] Pan to explore.
+ * - [ ] Design interface so it can be used as a component.
+ * - [?] If both L and U are not ramps, then the tile is flat even if LU is a ramp.
  * - [ ] Water level overlay
- * - [ ] Camera controls (perspective, perspective origin).
- * - [ ] Nice animations by giving everything a clip (so we transition the clips).
  * - [ ] Jitter the vertexes.
  *
  * Done:
+ * - [x] Camera controls (perspective, perspective origin).
+ * - [x] Nice animations by giving everything a clip (so we transition the clips).
+ * - [x] Handle 1010, 0101
  * - [x] Fix the math.
  * - [x] Don't use rotation.
  * - [x] Add more ramp styles.
@@ -41,10 +45,9 @@ const baseTileSize = 20;
 
 setIsoCssVars();
 
-const gen = () =>
-  groundToData(generateExpandedGround(levels, undefined, tiles));
+const gen = () => processData(generateExpandedGround(levels, undefined, tiles));
 
-const terrains = [] as Ground[];
+const terrains = [] as Terrain[];
 
 // generate 30 terrains
 const count = 30;
@@ -102,7 +105,7 @@ export function DemoThree() {
             57.2958°
           </div>
         </div>
-        <div className="filter">
+        <div className="">
           <div
             className="isometric"
             style={{

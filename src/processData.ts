@@ -1,23 +1,3 @@
-import { makeNoise2D } from 'fast-simplex-noise';
-
-function makeNumberGenerator(seed: number) {
-  const generate = () => {
-    const x = Math.sin(seed++) * 10000;
-    const val = x - Math.floor(x);
-    return val;
-  };
-  return generate;
-}
-const defaultGenerator = makeNumberGenerator(1);
-
-export { defaultGenerator, makeNumberGenerator };
-
-export function groundToTiles(ground: string) {
-  return ground
-    .split('\n')
-    .map((row) => row.split('').map((tile) => parseInt(tile)));
-}
-
 export type Tile = [
   x: number,
   y: number,
@@ -29,69 +9,7 @@ export type Tile = [
   dNeighbor: number,
 ];
 
-export type Ground = Tile[];
-
-export function generateGround(
-  levels = 10,
-  rand = defaultGenerator,
-  perimeter = 10,
-  forceZ: number | undefined = undefined,
-) {
-  const noiseGenerator = makeNoise2D(rand);
-  let ground = '';
-  for (let i = 0; i < perimeter; i++) {
-    let row1 = '';
-    for (let j = 0; j < perimeter; j++) {
-      const v = noiseGenerator(i, j);
-      if (forceZ !== undefined) {
-        row1 += forceZ;
-      } else {
-        const val = Math.floor(((v + 1) / 2) * levels);
-        row1 += val;
-      }
-    }
-    ground += `${row1}\n`;
-  }
-  return ground;
-}
-
-export function generateExpandedGround(
-  levels = 10,
-  rand = defaultGenerator,
-  perimeter = 10,
-  forceZ: number | undefined = undefined,
-) {
-  const noiseGenerator = makeNoise2D(rand);
-  let ground = '';
-  for (let i = 0; i < perimeter; i++) {
-    let row1 = '',
-      row2 = '',
-      row3 = '';
-    for (let j = 0; j < perimeter; j++) {
-      const v = noiseGenerator(i, j);
-      if (forceZ !== undefined) {
-        row1 += forceZ;
-        row2 += forceZ;
-        row3 += forceZ;
-      } else {
-        const val = Math.floor(((v + 1) / 2) * levels);
-        row1 += `${wiggle(val, rand)}${wiggle(val, rand)}${wiggle(val, rand)}`;
-        row2 += `${wiggle(val, rand)}${wiggle(val, rand)}${wiggle(val, rand)}`;
-        row3 += `${wiggle(val, rand)}${wiggle(val, rand)}${wiggle(val, rand)}`;
-      }
-    }
-    ground += `${row1}\n`;
-    ground += `${row2}\n`;
-    ground += `${row3}\n`;
-  }
-  return ground;
-}
-
-function wiggle(v: number, g: () => number, mod = 0.8) {
-  const nv = Math.min(9, Math.max(0, Math.floor(v + (mod * g() - 0.5))));
-  if (nv < 3) return 2;
-  return nv;
-}
+export type Terrain = Tile[];
 
 const cliffThreshold = 1.1;
 function getEntry(
@@ -171,7 +89,7 @@ function getEntry(
   return [x, y, z, sig, lDiff, uDiff, rDiff, dDiff];
 }
 
-export function groundToData(ground: string): Ground {
+export function processData(ground: string): Terrain {
   const rows = ground.split('\n');
   const invalidPositions = new Set<string>();
   const output = rows.map((row, y) => {

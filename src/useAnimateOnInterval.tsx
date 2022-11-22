@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Ground, generateExpandedGround, groundToData } from './ground';
+import { Ground, generateExpandedGround, groundToData } from './generateData';
 
 export function useAnimateOnInterval(
   set: (tiles: Ground) => void,

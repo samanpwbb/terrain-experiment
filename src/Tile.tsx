@@ -1,5 +1,6 @@
 import { getColorFromZ } from './colors';
 import { scale, RADIAN_TO_ANGLE } from './perspective-utils';
+import { colord } from 'colord';
 
 const floorHeight = 0;
 const stepSize = 0.25;
@@ -20,15 +21,18 @@ function getRamp({
   zStep: number;
 }) {
   const nData = {
+    // primary plane
     nTransform: '',
     clipPath: '',
     anchor: '',
     fill: '',
     nOffset: 0,
-    showSurface: false,
-    surfaceOffset: 0,
-    surfaceClipPath: '',
-    surfaceTransform: '',
+
+    // secondary plane, only used for ramps that use half a tile.
+    xyPlaneShow: false,
+    xyPlaneOffset: 0,
+    xyPlaneClipPath: '',
+    xyPlaneTransform: '',
   };
 
   //        |\
@@ -53,16 +57,16 @@ function getRamp({
     const desiredLength = Math.hypot(zTile, squareDiagonal / 2);
     const lengthScale = desiredLength / (tileSize / 2);
 
-    nData.showSurface = true;
-    nData.surfaceOffset = 0.5;
+    nData.xyPlaneShow = true;
+    nData.xyPlaneOffset = 0.5;
 
     const z = zStep * tileSize;
 
     // bottom
     if (n === 0b1010) {
       nData.clipPath = 'polygon(0% 0, 100% 50%, 0% 100%)';
-      nData.surfaceClipPath = 'polygon(100% 0, 0% 50%, 100% 100%)';
-      nData.surfaceTransform = `
+      nData.xyPlaneClipPath = 'polygon(100% 0, 0% 50%, 100% 100%)';
+      nData.xyPlaneTransform = `
       translateZ(${z / 2}px)
       rotateZ(45deg)
       rotateY(-${singleCornerAngle}deg)
@@ -89,8 +93,8 @@ function getRamp({
       scaleY(${lengthScale / 2})
       translateY(-50%)`;
 
-      nData.surfaceClipPath = 'polygon(0 0%, 50% 100%, 100% 0%)';
-      nData.surfaceTransform = `
+      nData.xyPlaneClipPath = 'polygon(0 0%, 50% 100%, 100% 0%)';
+      nData.xyPlaneTransform = `
       translateZ(${z / 2}px)
       rotateZ(45deg)
       rotateX(-${singleCornerAngle}deg)
@@ -108,11 +112,11 @@ function getRamp({
     const squareDiagonal = SQ2 * tileSize;
     const desiredLength = Math.hypot(zTile, squareDiagonal / 2);
     const xScale = desiredLength / (tileSize / 2);
-    nData.showSurface = true;
+    nData.xyPlaneShow = true;
     // up
     if (n === 0b0100) {
       nData.clipPath = 'polygon(100% 0, 0 50%, 100% 100%)';
-      nData.surfaceClipPath = 'polygon(100% 0%, 100% 100%, 0% 100%)';
+      nData.xyPlaneClipPath = 'polygon(100% 0%, 100% 100%, 0% 100%)';
       nData.nTransform = `
       rotateZ(45deg)
       rotateY(${singleCornerAngle}deg)
@@ -124,7 +128,7 @@ function getRamp({
     // down
     if (n === 0b0001) {
       nData.clipPath = 'polygon(0% 0, 100% 50%, 0% 100%)';
-      nData.surfaceClipPath = 'polygon(100% 0%, 0% 0%, 0% 100%)';
+      nData.xyPlaneClipPath = 'polygon(100% 0%, 0% 0%, 0% 100%)';
       nData.nTransform = `
       rotateZ(45deg)
       rotateY(-${singleCornerAngle}deg)
@@ -135,7 +139,7 @@ function getRamp({
 
     // left
     if (n === 0b1000) {
-      nData.surfaceClipPath = 'polygon(100% 0%, 0% 0%, 100% 100%)';
+      nData.xyPlaneClipPath = 'polygon(100% 0%, 0% 0%, 100% 100%)';
       nData.clipPath = 'polygon(0 0%, 50% 100%, 100% 0%)';
       nData.nTransform = `
       rotateZ(45deg)
@@ -147,9 +151,9 @@ function getRamp({
 
     // right
     if (n === 0b0010) {
-      nData.showSurface = true;
+      nData.xyPlaneShow = true;
       nData.clipPath = 'polygon(0 100%, 50% 0%, 100% 100%)';
-      nData.surfaceClipPath = 'polygon(100% 100%, 0% 100%, 0% 0%)';
+      nData.xyPlaneClipPath = 'polygon(100% 100%, 0% 100%, 0% 0%)';
 
       nData.nTransform = `
       rotateZ(45deg)
@@ -195,19 +199,19 @@ function getRamp({
     const squareDiagonal = 1.41421356237 * tileSize;
     const desiredLength = Math.hypot(zTile, squareDiagonal / 2);
     const lengthScale = desiredLength / (tileSize / 2);
-
-    nData.showSurface = true;
-    nData.surfaceOffset = 1;
-
     const z = zStep * tileSize;
+    const rotateZ = 45;
+
+    nData.xyPlaneShow = true;
+    nData.xyPlaneOffset = 1;
 
     // bottom
     if (n === 0b1110) {
-      nData.surfaceClipPath = 'polygon(100% 0%, 0% 100%, 0% 0%)';
+      nData.xyPlaneClipPath = 'polygon(100% 0%, 0% 100%, 0% 0%)';
       nData.clipPath = 'polygon(0% 0, 100% 50%, 0% 100%)';
       nData.nTransform = `
       translateZ(${z}px)
-      rotateZ(45deg)
+      rotateZ(${rotateZ}deg)
       rotateY(${singleCornerAngle}deg)
       scaleY(${SQ2})
       scaleX(${lengthScale / 2})
@@ -216,11 +220,11 @@ function getRamp({
 
     // top
     if (n === 0b1011) {
-      nData.surfaceClipPath = 'polygon(100% 0, 0 100%, 100% 100%)';
+      nData.xyPlaneClipPath = 'polygon(100% 0, 0 100%, 100% 100%)';
       nData.clipPath = 'polygon(100% 0, 0% 50%, 100% 100%)';
       nData.nTransform = `
       translateZ(${z}px)
-      rotateZ(45deg)
+      rotateZ(${rotateZ}deg)
       rotateY(-${singleCornerAngle}deg)
       scaleY(${SQ2})
       scaleX(${lengthScale / 2})
@@ -230,11 +234,11 @@ function getRamp({
 
     // left
     if (n === 0b1101) {
-      nData.surfaceClipPath = 'polygon(0% 100%, 100% 100%, 0% 0%)';
+      nData.xyPlaneClipPath = 'polygon(0% 100%, 100% 100%, 0% 0%)';
       nData.clipPath = 'polygon(0 100%, 50% 0, 100% 100%)';
       nData.nTransform = `
       translateZ(${z}px)
-      rotateZ(45deg)
+      rotateZ(${rotateZ}deg)
       rotateX(${singleCornerAngle}deg)
       scaleX(${SQ2})
       scaleY(${lengthScale / 2})
@@ -243,11 +247,11 @@ function getRamp({
 
     // right
     if (n === 0b0111) {
-      nData.surfaceClipPath = 'polygon(100% 100%, 0 0, 100% 0)';
+      nData.xyPlaneClipPath = 'polygon(100% 100%, 0 0, 100% 0)';
       nData.clipPath = 'polygon(0 0%, 50% 100%, 100% 0%)';
       nData.nTransform = `
       translateZ(${z}px)
-      rotateZ(45deg)
+      rotateZ(${rotateZ}deg)
       rotateX(-${singleCornerAngle}deg)
       scaleX(${SQ2})
       scaleY(${lengthScale / 2})
@@ -263,15 +267,17 @@ function getRamp({
 function Face({ z, tileSize, style, debug }: any) {
   return (
     <div
-      className={`absolute transition-all`}
+      className={`absolute`}
       style={{
         height: `${tileSize}px`,
         width: `${tileSize}px`,
-        transitionDuration: `${100 + Math.abs(floorHeight + z) * 50}ms`,
-        transitionProperty: 'all',
+        transition: `all ${
+          100 + Math.abs(floorHeight + z) * 50
+        }ms, clip-path 0ms`,
         alignItems: 'center',
         justifyContent: 'center',
         fontSize: 10,
+
         ...style,
       }}
     >
@@ -287,12 +293,15 @@ export function Tile({
   z,
   tileSize,
   neighbors,
+  diffs,
 }: {
   tileSize: number;
   x: number;
   y: number;
   z: number;
   neighbors: number;
+  // [0, 1, 2, 3] = [left, up, right, down]
+  diffs: number[];
 }) {
   const zStep = scale * stepSize;
   const zBase = floorHeight + z * zStep;
@@ -300,11 +309,12 @@ export function Tile({
   const xOffset = x * tileSize;
   const yOffset = y * tileSize;
 
+  console.log(diffs);
   const {
-    showSurface,
-    surfaceClipPath,
-    surfaceOffset,
-    surfaceTransform,
+    xyPlaneShow,
+    xyPlaneClipPath,
+    xyPlaneOffset,
+    xyPlaneTransform,
     anchor,
     nTransform,
     nOffset,
@@ -322,6 +332,9 @@ export function Tile({
     ${zOffset + offset * (zStep * tileSize)}px
   )`;
   const translate3d = toTranslate3d(nOffset);
+
+  const showBottomPane = diffs[3] < -1 && !isNaN(diffs[3]);
+  const showRightPane = diffs[2] < -1 && !isNaN(diffs[2]);
 
   return (
     <>
@@ -343,11 +356,11 @@ export function Tile({
       <Face
         style={{
           boxShadow: `inset 0 0 0 1px ${baseColor}33`,
-          transform: `${toTranslate3d(surfaceOffset)} ${surfaceTransform}`,
-          opacity: showSurface ? 1 : 0,
+          transform: `${toTranslate3d(xyPlaneOffset)} ${xyPlaneTransform}`,
+          opacity: xyPlaneShow ? 1 : 0,
           transformOrigin: anchor,
-          backgroundColor: getColorFromZ(z, surfaceOffset),
-          clipPath: surfaceClipPath,
+          backgroundColor: getColorFromZ(z, xyPlaneOffset),
+          clipPath: xyPlaneClipPath,
         }}
         tileSize={tileSize}
         z={z}
@@ -356,9 +369,16 @@ export function Tile({
       {/* bottom side plane */}
       <Face
         style={{
-          transform: `${translate3d} rotateX(90deg) scaleY(${zBase})`,
+          opacity: showBottomPane ? 1 : 0,
+          boxShadow: `inset 0 0 0 1px ${baseColor}33`,
+          transform: `${translate3d} rotateX(90deg) scaleY(${
+            -diffs[3] * zStep
+          })`,
           transformOrigin: 'bottom',
-          background: '#000',
+          background: colord(getColorFromZ(z, xyPlaneOffset))
+            .lighten(0.1)
+            .desaturate(0.2)
+            .toHslString(),
         }}
         tileSize={tileSize}
         z={z}
@@ -366,9 +386,16 @@ export function Tile({
       {/* right side plane */}
       <Face
         style={{
-          transform: `${translate3d} rotateY(90deg) scaleX(${zBase}) translateX(100%)`,
+          opacity: showRightPane ? 1 : 0,
+          boxShadow: `inset 0 0 0 1px ${baseColor}33`,
+          transform: `${translate3d} rotateY(90deg) scaleX(${
+            -diffs[2] * zStep
+          }) translateX(100%)`,
           transformOrigin: 'right',
-          background: '#2D3E59',
+          background: colord(getColorFromZ(z, xyPlaneOffset))
+            .darken(0.1)
+            .desaturate(0.2)
+            .toHslString(),
         }}
         tileSize={tileSize}
         z={z}

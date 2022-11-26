@@ -6,16 +6,17 @@ import { useWindowSize } from './useWindowSize';
 import { Tile } from './Tile';
 
 /* next
- * - [ ] Fix coloring on 0101 and 1010.
- * - [ ] Only draw cliffs where there are cliffs, make sure cliffs cover angles.
+ * - [x] Fix coloring on 0101 and 1010.
  * - [ ] Click to raise / shift+click to lower.
  * - [ ] Pan to explore.
  * - [ ] Design interface so it can be used as a component.
  * - [?] If both L and U are not ramps, then the tile is flat even if LU is a ramp.
  * - [ ] Water level overlay
  * - [ ] Jitter the vertexes.
+ * - [ ] start generating from center rather that top left so we can expand in all directions.
  *
  * Done:
+ * - [x] Only draw cliffs where there are cliffs, make sure cliffs cover angles.
  * - [x] Camera controls (perspective, perspective origin).
  * - [x] Nice animations by giving everything a clip (so we transition the clips).
  * - [x] Handle 1010, 0101
@@ -39,9 +40,9 @@ import { Tile } from './Tile';
  * - [ ] Allow ramps to angle up to two tiles not just one.
  */
 
-const tiles = 6;
+const tiles = 4;
 const levels = 10;
-const baseTileSize = 20;
+const baseTileSize = 30;
 
 setIsoCssVars();
 
@@ -56,7 +57,7 @@ for (let i = 0; i < count; i++) {
 }
 
 export function DemoThree() {
-  const [active, setActive] = useState(6);
+  const [active, setActive] = useState(3);
 
   const windowSize = useWindowSize();
   const tileSize = baseTileSize + windowSize[0] * 0.0125;
@@ -113,11 +114,12 @@ export function DemoThree() {
               width: `${68}vmin`,
             }}
           >
-            {terrains[active].map(([x, y, z, n]) => {
+            {terrains[active].map(([x, y, z, n, ...diffs]) => {
               return (
                 <Tile
                   key={x + ',' + y}
                   neighbors={n}
+                  diffs={diffs}
                   tileSize={tileSize}
                   x={x}
                   y={y}

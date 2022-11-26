@@ -12,11 +12,11 @@ const threeUpRamps = new Set([0b1110, 0b1101, 0b1011, 0b0111]);
 const splitRamps = new Set([0b1010, 0b0101]);
 
 function getRamp({
-  n,
+  s,
   tileSize,
   zStep,
 }: {
-  n: number;
+  s: number;
   tileSize: number;
   zStep: number;
 }) {
@@ -43,13 +43,13 @@ function getRamp({
   //
   const zTile = zStep * tileSize;
 
-  if (n === 0b1111) {
+  if (s === 0b1111) {
     nData.nOffset = 1;
     return nData;
   }
 
   // split ramps
-  if (splitRamps.has(n)) {
+  if (splitRamps.has(s)) {
     const adjacent = 1.41421356237 * tileSize * 0.5;
     const opposite = zTile;
     const singleCornerAngle = Math.atan(opposite / adjacent) * RADIAN_TO_ANGLE;
@@ -63,7 +63,7 @@ function getRamp({
     const z = zStep * tileSize;
 
     // bottom
-    if (n === 0b1010) {
+    if (s === 0b1010) {
       nData.clipPath = 'polygon(0% 0, 100% 50%, 0% 100%)';
       nData.xyPlaneClipPath = 'polygon(100% 0, 0% 50%, 100% 100%)';
       nData.xyPlaneTransform = `
@@ -72,8 +72,8 @@ function getRamp({
       rotateY(-${singleCornerAngle}deg)
       scaleY(${SQ2})
       scaleX(${lengthScale / 2})
-      translateX(-50%)
-      `;
+      translateX(-50%)`;
+
       nData.nTransform = `
       translateZ(${z}px)
       rotateZ(45deg)
@@ -83,7 +83,7 @@ function getRamp({
       translateX(50%)`;
     }
 
-    if (n === 0b0101) {
+    if (s === 0b0101) {
       nData.clipPath = 'polygon(0 100%, 50% 0, 100% 100%)';
       nData.nTransform = `
       translateZ(${z}px)
@@ -105,7 +105,7 @@ function getRamp({
   }
 
   // one-up ramps
-  if (oneUpRamps.has(n)) {
+  if (oneUpRamps.has(s)) {
     const adjacent = SQ2 * tileSize * 0.5;
     const opposite = zTile;
     const singleCornerAngle = Math.atan(opposite / adjacent) * RADIAN_TO_ANGLE;
@@ -114,7 +114,7 @@ function getRamp({
     const xScale = desiredLength / (tileSize / 2);
     nData.xyPlaneShow = true;
     // up
-    if (n === 0b0100) {
+    if (s === 0b0100) {
       nData.clipPath = 'polygon(100% 0, 0 50%, 100% 100%)';
       nData.xyPlaneClipPath = 'polygon(100% 0%, 100% 100%, 0% 100%)';
       nData.nTransform = `
@@ -126,7 +126,7 @@ function getRamp({
     }
 
     // down
-    if (n === 0b0001) {
+    if (s === 0b0001) {
       nData.clipPath = 'polygon(0% 0, 100% 50%, 0% 100%)';
       nData.xyPlaneClipPath = 'polygon(100% 0%, 0% 0%, 0% 100%)';
       nData.nTransform = `
@@ -138,7 +138,7 @@ function getRamp({
     }
 
     // left
-    if (n === 0b1000) {
+    if (s === 0b1000) {
       nData.xyPlaneClipPath = 'polygon(100% 0%, 0% 0%, 100% 100%)';
       nData.clipPath = 'polygon(0 0%, 50% 100%, 100% 0%)';
       nData.nTransform = `
@@ -150,7 +150,7 @@ function getRamp({
     }
 
     // right
-    if (n === 0b0010) {
+    if (s === 0b0010) {
       nData.xyPlaneShow = true;
       nData.clipPath = 'polygon(0 100%, 50% 0%, 100% 100%)';
       nData.xyPlaneClipPath = 'polygon(100% 100%, 0% 100%, 0% 0%)';
@@ -167,24 +167,24 @@ function getRamp({
   }
 
   // two-up ramps
-  if (twoUpRamps.has(n)) {
+  if (twoUpRamps.has(s)) {
     const hypot = Math.hypot(tileSize, zTile);
     const scale = hypot / tileSize;
     const angle = Math.asin(zTile / hypot) * RADIAN_TO_ANGLE;
 
-    if (n === 0b1100) {
+    if (s === 0b1100) {
       nData.nTransform = `rotateY(${angle}deg) scaleX(${scale})`;
       nData.anchor = 'right';
     }
-    if (n === 0b0110) {
+    if (s === 0b0110) {
       nData.nTransform = `rotateX(-${angle}deg) scaleY(${scale})`;
       nData.anchor = 'bottom';
     }
-    if (n === 0b1001) {
+    if (s === 0b1001) {
       nData.nTransform = `rotateX(${angle}deg) scaleY(${scale})`;
       nData.anchor = 'top';
     }
-    if (n === 0b0011) {
+    if (s === 0b0011) {
       nData.nTransform = `rotateY(-${angle}deg) scaleX(${scale})`;
       nData.anchor = 'left';
     }
@@ -192,7 +192,7 @@ function getRamp({
   }
 
   // three-up ramps
-  if (threeUpRamps.has(n)) {
+  if (threeUpRamps.has(s)) {
     const adjacent = 1.41421356237 * tileSize * 0.5;
     const opposite = zTile;
     const singleCornerAngle = Math.atan(opposite / adjacent) * RADIAN_TO_ANGLE;
@@ -206,7 +206,7 @@ function getRamp({
     nData.xyPlaneOffset = 1;
 
     // bottom
-    if (n === 0b1110) {
+    if (s === 0b1110) {
       nData.xyPlaneClipPath = 'polygon(100% 0%, 0% 100%, 0% 0%)';
       nData.clipPath = 'polygon(0% 0, 100% 50%, 0% 100%)';
       nData.nTransform = `
@@ -219,7 +219,7 @@ function getRamp({
     }
 
     // top
-    if (n === 0b1011) {
+    if (s === 0b1011) {
       nData.xyPlaneClipPath = 'polygon(100% 0, 0 100%, 100% 100%)';
       nData.clipPath = 'polygon(100% 0, 0% 50%, 100% 100%)';
       nData.nTransform = `
@@ -233,7 +233,7 @@ function getRamp({
     }
 
     // left
-    if (n === 0b1101) {
+    if (s === 0b1101) {
       nData.xyPlaneClipPath = 'polygon(0% 100%, 100% 100%, 0% 0%)';
       nData.clipPath = 'polygon(0 100%, 50% 0, 100% 100%)';
       nData.nTransform = `
@@ -246,7 +246,7 @@ function getRamp({
     }
 
     // right
-    if (n === 0b0111) {
+    if (s === 0b0111) {
       nData.xyPlaneClipPath = 'polygon(100% 100%, 0 0, 100% 0)';
       nData.clipPath = 'polygon(0 0%, 50% 100%, 100% 0%)';
       nData.nTransform = `
@@ -276,8 +276,8 @@ function Face({ z, tileSize, style, debug }: any) {
         }ms, clip-path 0ms`,
         alignItems: 'center',
         justifyContent: 'center',
-        fontSize: 10,
-
+        display: 'flex',
+        fontSize: 8,
         ...style,
       }}
     >
@@ -286,20 +286,95 @@ function Face({ z, tileSize, style, debug }: any) {
   );
 }
 
+function printNumberAsBase2(n: number) {
+  return (n >>> 0).toString(2).padStart(4, '0');
+}
+
+interface RampEdgeData {
+  transform: string;
+  clip: string;
+  anchor: string;
+  fill?: string;
+  zMod: number;
+}
+
+function getZMod(s: number) {
+  if (oneUpRamps.has(s)) return 0;
+  if (twoUpRamps.has(s)) return 0.5;
+  if (threeUpRamps.has(s)) return 0.5;
+  return 0;
+}
+
+function getRampEdgeData(
+  s: number,
+  diffs: number[],
+  scale: number,
+): [RampEdgeData | null, RampEdgeData | null] {
+  // bottom
+  const result = [null, null] as [RampEdgeData | null, RampEdgeData | null];
+
+  if (diffs[3] < 0 && (s === 0b1100 || s === 0b1110 || s === 0b1000)) {
+    result[0] = {
+      transform: `rotateX(90deg) scaleY(${scale}) translateY(100%)`,
+      anchor: 'bottom',
+      clip: 'polygon(0 0, 100% 0, 0 100%)',
+      zMod: getZMod(s),
+    };
+  }
+
+  // bottom
+  if (diffs[3] < 0 && (s === 0b0011 || s === 0b0111 || s === 0b0001)) {
+    result[0] = {
+      transform: `rotateX(90deg) scaleY(${scale}) translateY(100%)`,
+      anchor: 'bottom',
+      clip: 'polygon(0 0, 100% 0, 100% 100%)',
+      zMod: getZMod(s),
+    };
+  }
+
+  // right
+  if (
+    diffs[2] < 0 &&
+    (s === 0b0110 || s === 0b1110 || s === 0b1010 || s === 0b0010)
+  ) {
+    result[1] = {
+      transform: `rotateY(90deg) scaleX(${scale})`,
+      anchor: 'right',
+      clip: 'polygon(0 0, 100% 0, 100% 100%)',
+      zMod: getZMod(s),
+    };
+  }
+
+  // right
+  if (
+    diffs[2] < 0 &&
+    (s === 0b1001 || s === 0b1101 || s === 0b0001 || s === 0b0101)
+  ) {
+    result[1] = {
+      transform: `rotateY(90deg) scaleX(${scale})`,
+      anchor: 'right',
+      clip: 'polygon(0 100%, 100% 0, 100% 100%)',
+      zMod: getZMod(s),
+    };
+  }
+
+  return result;
+}
+
 const baseColor = '#1C2A3B';
 export function Tile({
   x,
   y,
   z,
   tileSize,
-  neighbors,
+  signature,
   diffs,
 }: {
   tileSize: number;
   x: number;
   y: number;
   z: number;
-  neighbors: number;
+  signature: number;
   // [0, 1, 2, 3] = [left, up, right, down]
   diffs: number[];
 }) {
@@ -309,7 +384,6 @@ export function Tile({
   const xOffset = x * tileSize;
   const yOffset = y * tileSize;
 
-  console.log(diffs);
   const {
     xyPlaneShow,
     xyPlaneClipPath,
@@ -323,7 +397,7 @@ export function Tile({
   } = getRamp({
     tileSize,
     zStep,
-    n: neighbors,
+    s: signature,
   });
 
   const toTranslate3d = (offset = 0) => `translate3d(
@@ -331,16 +405,46 @@ export function Tile({
     ${yOffset}px,
     ${zOffset + offset * (zStep * tileSize)}px
   )`;
-  const translate3d = toTranslate3d(nOffset);
 
+  const translate3d = toTranslate3d(nOffset);
   const showBottomPane = diffs[3] < -1 && !isNaN(diffs[3]);
   const showRightPane = diffs[2] < -1 && !isNaN(diffs[2]);
+  const edges = getRampEdgeData(signature, diffs, zStep);
 
   return (
     <>
+      {/* right ramp pane */}
+      {edges.map((rampEdgeData, i) => (
+        <Face
+          key={i}
+          style={{
+            opacity: rampEdgeData ? 1 : 0,
+            transform: `${translate3d} ${
+              rampEdgeData ? rampEdgeData.transform : ''
+            }`,
+            transformOrigin: rampEdgeData ? rampEdgeData.anchor : '',
+            clipPath: rampEdgeData ? rampEdgeData.clip : '',
+            background:
+              rampEdgeData?.fill || rampEdgeData?.anchor === 'bottom'
+                ? colord(getColorFromZ(z, rampEdgeData?.zMod))
+                    .lighten(0.05)
+                    .desaturate(0.1)
+                    .toHex()
+                : rampEdgeData
+                ? colord(getColorFromZ(z, rampEdgeData?.zMod))
+                    .darken(0.05)
+                    .desaturate(0.1)
+                    .toHex()
+                : '',
+          }}
+          tileSize={tileSize}
+          z={z}
+        />
+      ))}
+
       {/* ground */}
       <Face
-        // debug={`${z}${neighbors}`}
+        // debug={`${printNumberAsBase2(signature)}`}
         style={{
           boxShadow: `inset 0 0 0 1px ${baseColor}33`,
           backgroundColor:
@@ -376,8 +480,8 @@ export function Tile({
           })`,
           transformOrigin: 'bottom',
           background: colord(getColorFromZ(z, xyPlaneOffset))
-            .lighten(0.1)
-            .desaturate(0.2)
+            .lighten(0.05)
+            .desaturate(0.1)
             .toHslString(),
         }}
         tileSize={tileSize}
@@ -393,8 +497,8 @@ export function Tile({
           }) translateX(100%)`,
           transformOrigin: 'right',
           background: colord(getColorFromZ(z, xyPlaneOffset))
-            .darken(0.1)
-            .desaturate(0.2)
+            .darken(0.05)
+            .desaturate(0.1)
             .toHslString(),
         }}
         tileSize={tileSize}

@@ -42,7 +42,7 @@ import { Tile } from './Tile';
 
 const tiles = 4;
 const levels = 10;
-const baseTileSize = 30;
+const baseTileSize = 40;
 
 setIsoCssVars();
 
@@ -114,12 +114,12 @@ export function DemoThree() {
               width: `${68}vmin`,
             }}
           >
-            {terrains[active].map(([x, y, z, n, ...diffs]) => {
+            {terrains[active].map(([x, y, z, s, ...diffs]) => {
               return (
                 <Tile
-                  key={x + ',' + y}
-                  neighbors={n}
                   diffs={diffs}
+                  key={x + ',' + y}
+                  signature={s}
                   tileSize={tileSize}
                   x={x}
                   y={y}

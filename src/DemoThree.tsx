@@ -6,16 +6,16 @@ import { useWindowSize } from './useWindowSize';
 import { Tile } from './Tile';
 
 /* next
- * - [x] Fix coloring on 0101 and 1010.
  * - [ ] Click to raise / shift+click to lower.
  * - [ ] Pan to explore.
  * - [ ] Design interface so it can be used as a component.
- * - [?] If both L and U are not ramps, then the tile is flat even if LU is a ramp.
  * - [ ] Water level overlay
- * - [ ] Jitter the vertexes.
+ * - [ ] Jitter the vertexes ?
  * - [ ] start generating from center rather that top left so we can expand in all directions.
  *
  * Done:
+ * - [?] If both L and U are not ramps, then the tile is flat even if LU is a ramp.
+ * - [x] Fix coloring on 0101 and 1010.
  * - [x] Only draw cliffs where there are cliffs, make sure cliffs cover angles.
  * - [x] Camera controls (perspective, perspective origin).
  * - [x] Nice animations by giving everything a clip (so we transition the clips).
@@ -51,13 +51,13 @@ const gen = () => processData(generateExpandedGround(levels, undefined, tiles));
 const terrains = [] as Terrain[];
 
 // generate 30 terrains
-const count = 30;
+const count = 50;
 for (let i = 0; i < count; i++) {
   terrains.push(gen());
 }
 
 export function DemoThree() {
-  const [active, setActive] = useState(3);
+  const [active, setActive] = useState(2);
 
   const windowSize = useWindowSize();
   const tileSize = baseTileSize + windowSize[0] * 0.0125;
@@ -72,14 +72,14 @@ export function DemoThree() {
             className="cursor-pointer bg-white px-2 py-1"
             onClick={() => setActive((v) => (v > 0 ? v - 1 : count - 1))}
           >
-            Prev
+            ←
           </div>
           <span className="opacity-50">{active}</span>
           <div
             className="cursor-pointer bg-white px-2 py-1"
             onClick={() => setActive((v) => (v < count - 1 ? v + 1 : 0))}
           >
-            Next
+            →
           </div>
           <div
             className="ml-2 cursor-pointer bg-white px-2 py-1"

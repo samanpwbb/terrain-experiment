@@ -1,6 +1,8 @@
 import { getColorFromZ } from './colors';
 import { scale, RADIAN_TO_ANGLE } from './perspective-utils';
-import { colord } from 'colord';
+import { colord, extend } from 'colord';
+import mixPlugin from 'colord/plugins/mix';
+extend([mixPlugin]);
 
 const floorHeight = 0;
 const stepSize = 0.25;
@@ -299,7 +301,7 @@ interface RampEdgeData {
 }
 
 function getZMod(s: number) {
-  if (oneUpRamps.has(s)) return 0;
+  if (oneUpRamps.has(s)) return 0.5;
   if (twoUpRamps.has(s)) return 0.5;
   if (threeUpRamps.has(s)) return 0.5;
   return 0;
@@ -313,7 +315,10 @@ function getRampEdgeData(
   // bottom
   const result = [null, null] as [RampEdgeData | null, RampEdgeData | null];
 
-  if (diffs[3] < 0 && (s === 0b1100 || s === 0b1110 || s === 0b1000)) {
+  if (
+    diffs[3] < 0 &&
+    (s === 0b1100 || s === 0b1010 || s === 0b1110 || s === 0b1000)
+  ) {
     result[0] = {
       transform: `rotateX(90deg) scaleY(${scale}) translateY(100%)`,
       anchor: 'bottom',
@@ -427,13 +432,11 @@ export function Tile({
             background:
               rampEdgeData?.fill || rampEdgeData?.anchor === 'bottom'
                 ? colord(getColorFromZ(z, rampEdgeData?.zMod))
-                    .lighten(0.05)
-                    .desaturate(0.1)
+                    .mix('#fff', 0.5)
                     .toHex()
                 : rampEdgeData
                 ? colord(getColorFromZ(z, rampEdgeData?.zMod))
-                    .darken(0.05)
-                    .desaturate(0.1)
+                    .mix(baseColor, 0.5)
                     .toHex()
                 : '',
           }}
@@ -444,7 +447,7 @@ export function Tile({
 
       {/* ground */}
       <Face
-        // debug={`${printNumberAsBase2(signature)}`}
+        debug={`${printNumberAsBase2(signature)}`}
         style={{
           boxShadow: `inset 0 0 0 1px ${baseColor}33`,
           backgroundColor:
@@ -480,9 +483,8 @@ export function Tile({
           })`,
           transformOrigin: 'bottom',
           background: colord(getColorFromZ(z, xyPlaneOffset))
-            .lighten(0.05)
-            .desaturate(0.1)
-            .toHslString(),
+            .mix('#fff', 0.5)
+            .toHex(),
         }}
         tileSize={tileSize}
         z={z}
@@ -497,9 +499,9 @@ export function Tile({
           }) translateX(100%)`,
           transformOrigin: 'right',
           background: colord(getColorFromZ(z, xyPlaneOffset))
-            .darken(0.05)
-            .desaturate(0.1)
-            .toHslString(),
+            .mix(baseColor, 0.5)
+
+            .toHex(),
         }}
         tileSize={tileSize}
         z={z}

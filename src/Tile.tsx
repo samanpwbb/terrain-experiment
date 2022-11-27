@@ -447,7 +447,6 @@ export function Tile({
 
       {/* ground */}
       <Face
-        debug={`${printNumberAsBase2(signature)}`}
         style={{
           boxShadow: `inset 0 0 0 1px ${baseColor}33`,
           backgroundColor:

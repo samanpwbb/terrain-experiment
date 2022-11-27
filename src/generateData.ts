@@ -20,9 +20,7 @@ export function groundToTiles(ground: string) {
 
 function smooth(curr: number, ...more: number[]) {
   const vals = [curr, ...more].filter((v) => !isNaN(v)) as number[];
-
   const avg = Math.floor(vals.reduce((a, b) => a + b, 4) / vals.length);
-
   if (avg < 3) return 2;
   return avg;
 }
@@ -117,8 +115,8 @@ export function generateExpandedGround(
     .join('\n');
 }
 
-function wiggle(v: number, g: () => number, mod = 2) {
+function wiggle(v: number, g: () => number, mod = 3) {
   const nv = Math.min(9, Math.max(0, Math.floor(v + (mod * g() - 0.5))));
-  if (nv < 4) return 2;
+  if (nv < 3) return 2;
   return nv;
 }

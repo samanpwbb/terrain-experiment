@@ -4,8 +4,10 @@ import { colord, extend } from 'colord';
 import mixPlugin from 'colord/plugins/mix';
 extend([mixPlugin]);
 
+const bgColor = '#1E293B';
 const floorHeight = 0;
 const stepSize = 0.25;
+
 const SQ2 = 1.41421356237;
 
 const oneUpRamps = new Set([0b1000, 0b0010, 0b0100, 0b0001]);
@@ -288,10 +290,6 @@ function Face({ z, tileSize, style, debug }: any) {
   );
 }
 
-function printNumberAsBase2(n: number) {
-  return (n >>> 0).toString(2).padStart(4, '0');
-}
-
 interface RampEdgeData {
   transform: string;
   clip: string;
@@ -311,12 +309,15 @@ function getRampEdgeData(
   s: number,
   diffs: number[],
   scale: number,
+  isLimitBottom: boolean,
+  isLimitRight: boolean,
 ): [RampEdgeData | null, RampEdgeData | null] {
   const result = [null, null] as [RampEdgeData | null, RampEdgeData | null];
 
   // bottom
+  const bottomIsVisible = isLimitBottom || diffs[3] < 0;
   if (
-    diffs[3] < 0 &&
+    bottomIsVisible &&
     (s === 0b1100 || s === 0b1010 || s === 0b1110 || s === 0b1000)
   ) {
     result[0] = {
@@ -324,12 +325,13 @@ function getRampEdgeData(
       anchor: 'bottom',
       clip: 'polygon(0 0, 100% 0, 0 100%)',
       zMod: getZMod(s),
+      fill: isLimitBottom ? bgColor : undefined,
     };
   }
 
   // bottom
   if (
-    diffs[3] < 0 &&
+    bottomIsVisible &&
     (s === 0b1011 ||
       s === 0b0011 ||
       s === 0b0111 ||
@@ -341,12 +343,14 @@ function getRampEdgeData(
       anchor: 'bottom',
       clip: s === 0b1011 ? '' : 'polygon(0 0, 100% 0, 100% 100%)',
       zMod: getZMod(s),
+      fill: isLimitBottom ? bgColor : undefined,
     };
   }
 
   // right
+  const rightIsVisible = isLimitRight || diffs[2] < 0;
   if (
-    diffs[2] < 0 &&
+    rightIsVisible &&
     (s === 0b0111 ||
       s === 0b0110 ||
       s === 0b1110 ||
@@ -358,12 +362,13 @@ function getRampEdgeData(
       anchor: 'right',
       clip: s === 0b0111 ? '' : 'polygon(0 0, 100% 0, 100% 100%)',
       zMod: getZMod(s),
+      fill: isLimitRight ? bgColor : undefined,
     };
   }
 
   // right
   if (
-    diffs[2] < 0 &&
+    rightIsVisible &&
     (s === 0b1001 || s === 0b1101 || s === 0b0001 || s === 0b0101)
   ) {
     result[1] = {
@@ -371,13 +376,13 @@ function getRampEdgeData(
       anchor: 'right',
       clip: 'polygon(0 100%, 100% 0, 100% 100%)',
       zMod: getZMod(s),
+      fill: isLimitRight ? bgColor : undefined,
     };
   }
 
   return result;
 }
 
-const baseColor = '#1C2A3B';
 export function Tile({
   x,
   y,
@@ -423,9 +428,21 @@ export function Tile({
   )`;
 
   const translate3d = toTranslate3d(nOffset);
-  const showBottomPane = diffs[3] < -1 && !isNaN(diffs[3]);
-  const showRightPane = diffs[2] < -1 && !isNaN(diffs[2]);
-  const edges = getRampEdgeData(signature, diffs, zStep);
+
+  const isLimitBottom = isNaN(diffs[3]);
+  const isLimitRight = isNaN(diffs[2]);
+  const showBottomPane = diffs[3] < -1 || isLimitBottom;
+  const showRightPane = diffs[2] < -1 || isLimitRight;
+  const sideIdxBottom = isLimitBottom ? z : -diffs[3];
+  const sideIdxRight = isLimitRight ? z : -diffs[2];
+
+  const edges = getRampEdgeData(
+    signature,
+    diffs,
+    zStep,
+    isLimitBottom,
+    isLimitRight,
+  );
 
   return (
     <>
@@ -441,15 +458,16 @@ export function Tile({
             transformOrigin: rampEdgeData ? rampEdgeData.anchor : '',
             clipPath: rampEdgeData ? rampEdgeData.clip : '',
             background:
-              rampEdgeData?.fill || rampEdgeData?.anchor === 'bottom'
+              rampEdgeData?.fill ||
+              (rampEdgeData?.anchor === 'bottom'
                 ? colord(getColorFromZ(z, rampEdgeData?.zMod))
                     .mix('#fff', 0.5)
                     .toHex()
                 : rampEdgeData
                 ? colord(getColorFromZ(z, rampEdgeData?.zMod))
-                    .mix(baseColor, 0.5)
+                    .mix(bgColor, 0.5)
                     .toHex()
-                : '',
+                : ''),
           }}
           tileSize={tileSize}
           z={z}
@@ -458,9 +476,9 @@ export function Tile({
 
       {/* ground */}
       <Face
-        debug={printNumberAsBase2(signature)}
+        // debug={printNumberAsBase2(signature)}
         style={{
-          boxShadow: `inset 0 0 0 1px ${baseColor}33`,
+          boxShadow: `inset 0 0 0 1px ${bgColor}33`,
           backgroundColor:
             fill || getColorFromZ(z, nOffset + (nTransform ? 0.5 : 0)),
           transform: `${translate3d} ${nTransform}`,
@@ -473,7 +491,7 @@ export function Tile({
       {/* duplicate ground plane used by masked 1-up and 3-up triangles */}
       <Face
         style={{
-          boxShadow: `inset 0 0 0 1px ${baseColor}33`,
+          boxShadow: `inset 0 0 0 1px ${bgColor}33`,
           transform: `${toTranslate3d(xyPlaneOffset)} ${xyPlaneTransform}`,
           opacity: xyPlaneShow ? 1 : 0,
           transformOrigin: anchor,
@@ -488,14 +506,14 @@ export function Tile({
       <Face
         style={{
           opacity: showBottomPane ? 1 : 0,
-          boxShadow: `inset 0 0 0 1px ${baseColor}33`,
+          boxShadow: `inset 0 0 0 1px ${bgColor}33`,
           transform: `${translate3d} rotateX(90deg) scaleY(${
-            -diffs[3] * zStep
+            sideIdxBottom * zStep
           })`,
           transformOrigin: 'bottom',
-          background: colord(getColorFromZ(z, xyPlaneOffset))
-            .mix('#fff', 0.5)
-            .toHex(),
+          background: isLimitBottom
+            ? bgColor
+            : colord(getColorFromZ(z, xyPlaneOffset)).mix('#fff', 0.5).toHex(),
         }}
         tileSize={tileSize}
         z={z}
@@ -504,15 +522,14 @@ export function Tile({
       <Face
         style={{
           opacity: showRightPane ? 1 : 0,
-          boxShadow: `inset 0 0 0 1px ${baseColor}33`,
+          boxShadow: `inset 0 0 0 1px ${bgColor}33`,
           transform: `${translate3d} rotateY(90deg) scaleX(${
-            -diffs[2] * zStep
+            sideIdxRight * zStep
           }) translateX(100%)`,
           transformOrigin: 'right',
-          background: colord(getColorFromZ(z, xyPlaneOffset))
-            .mix(baseColor, 0.5)
-
-            .toHex(),
+          background: isLimitRight
+            ? bgColor
+            : colord(getColorFromZ(z, xyPlaneOffset)).mix(bgColor, 0.5).toHex(),
         }}
         tileSize={tileSize}
         z={z}

@@ -7,16 +7,16 @@
 
 .parent {
   /* if we want perspective */
-  /* perspective: 1250vmin; */
-  transform-style: preserve-3d;
+  /* perspective: 120vmin; */
+  /* transform-style: preserve-3d; */
   transition: all 0.5s ease-in-out;
 }
 
 /* transforms */
 .isometric {
-  /* the first trannslateZ is to avoid clipping with the un-translated background */
   transition: all 0.5s ease-in-out;
-  transform: translateZ(400px) rotateX(var(--base-x)) rotateZ(var(--base-z));
+  /* the first trannslateZ is to avoid clipping with the un-translated background */
+  transform: translateZ(1000px) rotateX(var(--base-x)) rotateZ(var(--base-z));
   transform-style: preserve-3d;
 }
 

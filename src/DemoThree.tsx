@@ -6,12 +6,19 @@ import { useWindowSize } from './useWindowSize';
 import { Tile } from './Tile';
 
 /* next
- * - [ ] Click to raise / shift+click to lower.
- * - [ ] Pan to explore.
+ * - [ ] Rotate controls: left/right and up/down.
  * - [ ] Design interface so it can be used as a component.
+ * - [ ] Pass in data
+ * - [ ] Pass in color ramp
+ * - [ ] Allow more than 10 levels.
+ * - [ ] start generating from center rather that top left so we can expand in all directions.
+ *
+ * Maybe:
+ * - [ ] Pan to explore.
+ * - [ ] Click to raise / shift+click to lower.
  * - [ ] Water level overlay
  * - [ ] Jitter the vertexes ?
- * - [ ] start generating from center rather that top left so we can expand in all directions.
+ *
  *
  * Done:
  * - [?] If both L and U are not ramps, then the tile is flat even if LU is a ramp.
@@ -47,10 +54,8 @@ const baseTileSize = 40;
 setIsoCssVars();
 
 const gen = () => processData(generateExpandedGround(levels, undefined, tiles));
-
 const terrains = [] as Terrain[];
-
-// generate 30 terrains
+// pregenerate some terrain
 const count = 50;
 for (let i = 0; i < count; i++) {
   terrains.push(gen());
@@ -66,7 +71,7 @@ export function DemoThree() {
 
   return (
     <>
-      <div className="parent fixed inset-0 flex items-center justify-center bg-slate-800">
+      <div className="fixed inset-0 flex items-center justify-center bg-slate-800">
         <div className="padding-5 fixed bottom-5 left-5 z-10 flex items-center justify-center bg-white">
           <div
             className="cursor-pointer bg-white px-2 py-1"
@@ -106,7 +111,7 @@ export function DemoThree() {
             57.2958°
           </div>
         </div>
-        <div className="">
+        <div className="parent">
           <div
             className="isometric"
             style={{

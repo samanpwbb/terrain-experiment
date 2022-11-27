@@ -57,7 +57,7 @@ for (let i = 0; i < count; i++) {
 }
 
 export function DemoThree() {
-  const [active, setActive] = useState(2);
+  const [active, setActive] = useState(18);
 
   const windowSize = useWindowSize();
   const tileSize = baseTileSize + windowSize[0] * 0.0125;

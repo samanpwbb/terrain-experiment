@@ -312,9 +312,9 @@ function getRampEdgeData(
   diffs: number[],
   scale: number,
 ): [RampEdgeData | null, RampEdgeData | null] {
-  // bottom
   const result = [null, null] as [RampEdgeData | null, RampEdgeData | null];
 
+  // bottom
   if (
     diffs[3] < 0 &&
     (s === 0b1100 || s === 0b1010 || s === 0b1110 || s === 0b1000)
@@ -328,11 +328,18 @@ function getRampEdgeData(
   }
 
   // bottom
-  if (diffs[3] < 0 && (s === 0b0011 || s === 0b0111 || s === 0b0001)) {
+  if (
+    diffs[3] < 0 &&
+    (s === 0b1011 ||
+      s === 0b0011 ||
+      s === 0b0111 ||
+      s === 0b0001 ||
+      s === 0b0101)
+  ) {
     result[0] = {
       transform: `rotateX(90deg) scaleY(${scale}) translateY(100%)`,
       anchor: 'bottom',
-      clip: 'polygon(0 0, 100% 0, 100% 100%)',
+      clip: s === 0b1011 ? '' : 'polygon(0 0, 100% 0, 100% 100%)',
       zMod: getZMod(s),
     };
   }
@@ -340,12 +347,16 @@ function getRampEdgeData(
   // right
   if (
     diffs[2] < 0 &&
-    (s === 0b0110 || s === 0b1110 || s === 0b1010 || s === 0b0010)
+    (s === 0b0111 ||
+      s === 0b0110 ||
+      s === 0b1110 ||
+      s === 0b1010 ||
+      s === 0b0010)
   ) {
     result[1] = {
       transform: `rotateY(90deg) scaleX(${scale})`,
       anchor: 'right',
-      clip: 'polygon(0 0, 100% 0, 100% 100%)',
+      clip: s === 0b0111 ? '' : 'polygon(0 0, 100% 0, 100% 100%)',
       zMod: getZMod(s),
     };
   }
@@ -447,6 +458,7 @@ export function Tile({
 
       {/* ground */}
       <Face
+        debug={printNumberAsBase2(signature)}
         style={{
           boxShadow: `inset 0 0 0 1px ${baseColor}33`,
           backgroundColor:

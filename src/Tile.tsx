@@ -1,7 +1,7 @@
-import { getColorFromZ } from './colors';
 import { scale, RADIAN_TO_ANGLE } from './perspective-utils';
 import { colord, extend } from 'colord';
 import mixPlugin from 'colord/plugins/mix';
+import { memo, CSSProperties } from 'react';
 extend([mixPlugin]);
 
 const bgColor = '#1E293B';
@@ -54,10 +54,10 @@ function getRamp({
 
   // split ramps
   if (splitRamps.has(s)) {
-    const adjacent = 1.41421356237 * tileSize * 0.5;
+    const adjacent = SQ2 * tileSize * 0.5;
     const opposite = zTile;
     const singleCornerAngle = Math.atan(opposite / adjacent) * RADIAN_TO_ANGLE;
-    const squareDiagonal = 1.41421356237 * tileSize;
+    const squareDiagonal = SQ2 * tileSize;
     const desiredLength = Math.hypot(zTile, squareDiagonal / 2);
     const lengthScale = desiredLength / (tileSize / 2);
 
@@ -268,7 +268,19 @@ function getRamp({
   return nData;
 }
 
-function Face({ z, tileSize, style, debug }: any) {
+function Face({
+  z,
+  color,
+  tileSize,
+  style,
+  debug,
+}: {
+  z: number;
+  tileSize: number;
+  style: CSSProperties;
+  debug?: string;
+  color: string;
+}) {
   return (
     <div
       className={`absolute`}
@@ -282,6 +294,8 @@ function Face({ z, tileSize, style, debug }: any) {
         justifyContent: 'center',
         display: 'flex',
         fontSize: 8,
+        backgroundColor: color,
+        border: `4px solid ${bgColor}99`,
         ...style,
       }}
     >
@@ -369,12 +383,20 @@ function getRampEdgeData(
   // right
   if (
     rightIsVisible &&
-    (s === 0b1001 || s === 0b1101 || s === 0b0001 || s === 0b0101)
+    (s === 0b1011 ||
+      s === 0b0011 ||
+      s === 0b1001 ||
+      s === 0b1101 ||
+      s === 0b0001 ||
+      s === 0b0101)
   ) {
     result[1] = {
       transform: `rotateY(90deg) scaleX(${scale})`,
       anchor: 'right',
-      clip: 'polygon(0 100%, 100% 0, 100% 100%)',
+      clip:
+        s === 0b1011 || s === 0b0011
+          ? ''
+          : 'polygon(0 100%, 100% 0, 100% 100%)',
       zMod: getZMod(s),
       fill: isLimitRight ? bgColor : undefined,
     };
@@ -383,6 +405,30 @@ function getRampEdgeData(
   return result;
 }
 
+function getRampPaneBackground(
+  rampEdgeData: RampEdgeData | null,
+  z: number,
+  getColorFromZ: (z: number, offset: number) => string,
+  tint: 'bottom' | 'right' | null,
+) {
+  if (!rampEdgeData) return '';
+
+  if (rampEdgeData.fill) return rampEdgeData.fill;
+
+  if (tint === 'bottom') {
+    return colord(getColorFromZ(z, rampEdgeData.zMod))
+      .mix(bgColor, 0.25)
+      .toHex();
+  }
+
+  if (tint === 'right') {
+    return colord(getColorFromZ(z, rampEdgeData?.zMod))
+      .mix(bgColor, 0.66)
+      .toHex();
+  }
+
+  return getColorFromZ(z, rampEdgeData?.zMod);
+}
 export function Tile({
   x,
   y,
@@ -390,6 +436,7 @@ export function Tile({
   tileSize,
   signature,
   diffs,
+  getColorFromZ,
 }: {
   tileSize: number;
   x: number;
@@ -398,13 +445,13 @@ export function Tile({
   signature: number;
   // [0, 1, 2, 3] = [left, up, right, down]
   diffs: number[];
+  getColorFromZ: (z: number, offset: number) => string;
 }) {
   const zStep = scale * stepSize;
   const zBase = floorHeight + z * zStep;
   const zOffset = zBase * tileSize;
   const xOffset = x * tileSize;
   const yOffset = y * tileSize;
-
   const {
     xyPlaneShow,
     xyPlaneClipPath,
@@ -446,9 +493,15 @@ export function Tile({
 
   return (
     <>
-      {/* right ramp pane */}
+      {/* extra ramp panes */}
       {edges.map((rampEdgeData, i) => (
         <Face
+          color={getRampPaneBackground(
+            rampEdgeData,
+            z,
+            getColorFromZ,
+            rampEdgeData?.anchor as 'bottom' | 'right',
+          )}
           key={i}
           style={{
             opacity: rampEdgeData ? 1 : 0,
@@ -457,30 +510,17 @@ export function Tile({
             }`,
             transformOrigin: rampEdgeData ? rampEdgeData.anchor : '',
             clipPath: rampEdgeData ? rampEdgeData.clip : '',
-            background:
-              rampEdgeData?.fill ||
-              (rampEdgeData?.anchor === 'bottom'
-                ? colord(getColorFromZ(z, rampEdgeData?.zMod))
-                    .mix('#fff', 0.5)
-                    .toHex()
-                : rampEdgeData
-                ? colord(getColorFromZ(z, rampEdgeData?.zMod))
-                    .mix(bgColor, 0.5)
-                    .toHex()
-                : ''),
           }}
           tileSize={tileSize}
           z={z}
         />
       ))}
 
-      {/* ground */}
+      {/* main ground pane */}
       <Face
         // debug={printNumberAsBase2(signature)}
+        color={fill || getColorFromZ(z, nOffset + (nTransform ? 0.5 : 0))}
         style={{
-          boxShadow: `inset 0 0 0 1px ${bgColor}33`,
-          backgroundColor:
-            fill || getColorFromZ(z, nOffset + (nTransform ? 0.5 : 0)),
           transform: `${translate3d} ${nTransform}`,
           clipPath,
           transformOrigin: anchor,
@@ -488,14 +528,14 @@ export function Tile({
         tileSize={tileSize}
         z={z}
       />
+
       {/* duplicate ground plane used by masked 1-up and 3-up triangles */}
       <Face
+        color={getColorFromZ(z, xyPlaneOffset)}
         style={{
-          boxShadow: `inset 0 0 0 1px ${bgColor}33`,
           transform: `${toTranslate3d(xyPlaneOffset)} ${xyPlaneTransform}`,
           opacity: xyPlaneShow ? 1 : 0,
           transformOrigin: anchor,
-          backgroundColor: getColorFromZ(z, xyPlaneOffset),
           clipPath: xyPlaneClipPath,
         }}
         tileSize={tileSize}
@@ -504,32 +544,35 @@ export function Tile({
 
       {/* bottom side plane */}
       <Face
+        color={
+          isLimitBottom
+            ? bgColor
+            : colord(getColorFromZ(z, xyPlaneOffset)).mix(bgColor, 0.25).toHex()
+        }
         style={{
           opacity: showBottomPane ? 1 : 0,
-          boxShadow: `inset 0 0 0 1px ${bgColor}33`,
           transform: `${translate3d} rotateX(90deg) scaleY(${
             sideIdxBottom * zStep
           })`,
           transformOrigin: 'bottom',
-          background: isLimitBottom
-            ? bgColor
-            : colord(getColorFromZ(z, xyPlaneOffset)).mix('#fff', 0.5).toHex(),
         }}
         tileSize={tileSize}
         z={z}
       />
+
       {/* right side plane */}
       <Face
+        color={
+          isLimitRight
+            ? bgColor
+            : colord(getColorFromZ(z, xyPlaneOffset)).mix(bgColor, 0.66).toHex()
+        }
         style={{
           opacity: showRightPane ? 1 : 0,
-          boxShadow: `inset 0 0 0 1px ${bgColor}33`,
           transform: `${translate3d} rotateY(90deg) scaleX(${
             sideIdxRight * zStep
           }) translateX(100%)`,
           transformOrigin: 'right',
-          background: isLimitRight
-            ? bgColor
-            : colord(getColorFromZ(z, xyPlaneOffset)).mix(bgColor, 0.5).toHex(),
         }}
         tileSize={tileSize}
         z={z}
@@ -537,3 +580,5 @@ export function Tile({
     </>
   );
 }
+
+export const MemoizedTile = memo(Tile);

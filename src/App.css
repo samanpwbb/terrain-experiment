@@ -2,21 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-}
-
-.parent {
-  /* if we want perspective */
-  /* perspective: 120vmin; */
-  /* transform-style: preserve-3d; */
-  transition: all 0.5s ease-in-out;
-}
-
 /* transforms */
 .isometric {
-  transition: all 0.5s ease-in-out;
-  /* the first trannslateZ is to avoid clipping with the un-translated background */
-  transform: translateZ(1000px) rotateX(var(--base-x)) rotateZ(var(--base-z));
+  transition: all 0.25s ease-in-out;
+  /* the first translateZ is to avoid clipping with the un-translated background */
+  transform: rotateX(var(--base-x)) rotateZ(var(--base-z));
   transform-style: preserve-3d;
 }
 
@@ -27,4 +17,8 @@
 
 .filter {
   filter: url('#turb');
+}
+
+.pixelate {
+  filter: url('#pixelate');
 }

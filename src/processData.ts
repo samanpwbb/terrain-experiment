@@ -9,9 +9,9 @@ export type Tile = [
   dNeighbor: number,
 ];
 
-export type Terrain = Tile[];
+export type Terrain = { [key: string]: Tile };
 
-const cliffThreshold = 1.1;
+const FlatThreshold = 1;
 function getEntry(
   x: number,
   y: number,
@@ -27,7 +27,7 @@ function getEntry(
     ld: number;
   },
   invalidPositions: Set<string>,
-  diff = cliffThreshold,
+  diff = FlatThreshold,
 ): Tile {
   /*
    *
@@ -39,38 +39,63 @@ function getEntry(
    *
    */
   const lDiff = neighborZs.l - z;
-  const l = lDiff > 0 && lDiff < diff;
+  const lFlat = lDiff <= diff && lDiff >= 0;
+  const l = lDiff > 0 && lFlat;
 
   const luDiff = neighborZs.lu - z;
-  const lu = luDiff > 0 && luDiff < diff;
+  const luFlat = luDiff <= diff && luDiff >= 0;
+  const lu = luDiff > 0 && luFlat;
 
   const uDiff = neighborZs.u - z;
-  const u = uDiff > 0 && uDiff < diff;
+  const uFlat = uDiff <= diff && uDiff >= 0;
+  const u = uDiff > 0 && uFlat;
 
   const ruDiff = neighborZs.ru - z;
-  const ru = ruDiff > 0 && ruDiff < diff;
+  const ruFlat = ruDiff <= diff && ruDiff >= 0;
+  const ru = ruDiff > 0 && ruFlat;
 
   const rDiff = neighborZs.r - z;
-  const r = rDiff > 0 && rDiff < diff;
+  const rFlat = rDiff <= diff && rDiff >= 0;
+  const r = rDiff > 0 && rFlat;
 
   const rdDiff = neighborZs.rd - z;
-  const rd = rdDiff > 0 && rdDiff < diff;
+  const rdFlat = rdDiff <= diff && rdDiff >= 0;
+  const rd = rdDiff > 0 && rdFlat;
 
   const dDiff = neighborZs.d - z;
-  const d = dDiff > 0 && dDiff < diff;
+  const dFlat = dDiff <= diff && dDiff >= 0;
+  const d = dDiff > 0 && dFlat;
 
   const ldDiff = neighborZs.ld - z;
-  const ld = ldDiff > 0 && ldDiff < diff;
+  const ldFlat = ldDiff <= diff && ldDiff >= 0;
+  const ld = ldDiff > 0 && ldFlat;
 
   // prettier-ignore
-  const sig = +('0b' + [
-    (l || ld || d),
-    (l || lu || u),
-    (u || ru || r),
-    (r || rd || d),
-  ]
-    .map((v) => (v ? 1 : 0))
-    .join(''));
+  const edges = [
+    (l || d),
+    (l || u),
+    (u || r),
+    (r || d),
+  ];
+
+  // if diagonal
+  if (!edges[0] && (lFlat || dFlat)) {
+    edges[0] = ld;
+  }
+
+  if (!edges[1] && (lFlat || uFlat)) {
+    edges[1] = lu;
+  }
+
+  if (!edges[2] && (uFlat || rFlat)) {
+    edges[2] = ru;
+  }
+
+  if (!edges[3] && (rFlat || dFlat)) {
+    edges[3] = rd;
+  }
+
+  const sig = +('0b' + edges.map((v) => (v ? 1 : 0)).join(''));
 
   if (sig === 0b1111) {
     // add all neighbors to invalid positions, we need to re-calc them
@@ -91,13 +116,19 @@ function getEntry(
 
 export function processData(ground: string): Terrain {
   const rows = ground.split('\n');
+  const tiles = {} as Terrain;
   const invalidPositions = new Set<string>();
-  const output = rows.map((row, y) => {
-    return row.split('').map((zStr, x) => {
+  rows.forEach((row, y) => {
+    const midY = Math.round(rows.length / 2);
+    const relativeY = y - midY;
+    const col = row.split('');
+    const midX = Math.round(col.length / 2);
+    return col.forEach((zStr, x) => {
       const z = parseInt(zStr);
-      return getEntry(
-        x,
-        y,
+      const relativeX = x - midX;
+      tiles[`${relativeX},${relativeY}`] = getEntry(
+        relativeX,
+        relativeY,
         z,
         {
           l: Number(rows[y]?.[x - 1]),
@@ -120,26 +151,28 @@ export function processData(ground: string): Terrain {
 
       invalidPositions.delete(posStr);
 
-      if (!output[y]?.[x]) return;
+      if (!tiles[`${x},${y}`]) return;
 
-      output[y][x] = getEntry(
-        x,
-        y,
-        output[y][x][2],
+      const entry = tiles[`${x},${y}`];
+
+      tiles[`${x},${y}`] = getEntry(
+        entry[0],
+        entry[1],
+        entry[2],
         {
-          l: output[y]?.[x - 1]?.[2],
-          lu: output[y - 1]?.[x - 1]?.[2],
-          u: output[y - 1]?.[x]?.[2],
-          ru: output[y - 1]?.[x + 1]?.[2],
-          r: output[y][x + 1]?.[2],
-          rd: output[y + 1]?.[x + 1]?.[2],
-          d: output[y + 1]?.[x]?.[2],
-          ld: output[y + 1]?.[x - 1]?.[2],
+          l: tiles[`${x - 1},${y}`]?.[2],
+          lu: tiles[`${x - 1},${y - 1}`]?.[2],
+          u: tiles[`${x},${y - 1}`]?.[2],
+          ru: tiles[`${x + 1},${y - 1}`]?.[2],
+          r: tiles[`${x + 1},${y}`]?.[2],
+          rd: tiles[`${x + 1},${y + 1}`]?.[2],
+          d: tiles[`${x},${y + 1}`]?.[2],
+          ld: tiles[`${x - 1},${y + 1}`]?.[2],
         },
         invalidPositions,
       );
     });
   }
 
-  return output.flat();
+  return tiles;
 }

@@ -1,15 +1,16 @@
 import { useState } from 'react';
-import { generateExpandedGround, generateSimpleGround } from './generateData';
-import { processData, Terrain } from './processData';
+import { generateExpandedGround } from './generateData';
 import { setIsoCssVars, updateBaseX } from './perspective-utils';
 import { useWindowSize } from './useWindowSize';
-import { Tile } from './Tile';
+import { LandScape } from './LandScape';
 
 /* next
+ * - [ ] No ramp if diagonals are 1 z away but cardinals are more than 1.
  * - [ ] Rotate controls: left/right and up/down.
+ * - [ ] Clean up code...
  * - [ ] Design interface so it can be used as a component.
- * - [ ] Pass in data
- * - [ ] Pass in color ramp
+ * - [ ] Pass in data.
+ * - [ ] Pass in color ramp.
  * - [ ] Allow more than 10 levels.
  * - [ ] start generating from center rather that top left so we can expand in all directions.
  *
@@ -47,31 +48,44 @@ import { Tile } from './Tile';
  * - [ ] Allow ramps to angle up to two tiles not just one.
  */
 
-const tiles = 4;
+const tiles = 3;
 const levels = 10;
-const baseTileSize = 40;
+const baseTileSize = 50;
 
 setIsoCssVars();
 
-const gen = () => processData(generateExpandedGround(levels, undefined, tiles));
-const terrains = [] as Terrain[];
+const gen = () => generateExpandedGround(levels, undefined, tiles);
+const terrains = [] as string[];
 // pregenerate some terrain
 const count = 50;
 for (let i = 0; i < count; i++) {
   terrains.push(gen());
 }
 
+export const colorsNatural = [
+  'hsla(330 100% 80%)',
+  'hsla(280 100% 90%)',
+  'hsla(250 10% 100%)',
+  'hsla(170 60% 40%)',
+  'hsla(110 45% 60%)',
+  'hsla(90 65% 70%)',
+  'hsla(60 75% 75%)',
+  'hsla(200 80% 65%)',
+  '#008fb0',
+  '#0c4278',
+].reverse();
+
 export function DemoThree() {
   const [active, setActive] = useState(18);
 
   const windowSize = useWindowSize();
-  const tileSize = baseTileSize + windowSize[0] * 0.0125;
+  const tileSize = Math.round(baseTileSize + windowSize[0] * 0.0125);
 
   if (windowSize[0] === 0) return null;
 
   return (
     <>
-      <div className="fixed inset-0 flex items-center justify-center bg-slate-800">
+      <div className="fixed inset-0 flex items-center justify-center">
         <div className="padding-5 fixed bottom-5 left-5 z-10 flex items-center justify-center bg-white">
           <div
             className="cursor-pointer bg-white px-2 py-1"
@@ -111,38 +125,12 @@ export function DemoThree() {
             57.2958°
           </div>
         </div>
-        <div className="parent">
-          <div
-            className="isometric"
-            style={{
-              height: `${68}vmin`,
-              width: `${68}vmin`,
-            }}
-          >
-            {terrains[active].map(([x, y, z, s, ...diffs]) => {
-              return (
-                <Tile
-                  diffs={diffs}
-                  key={x + ',' + y}
-                  signature={s}
-                  tileSize={tileSize}
-                  x={x}
-                  y={y}
-                  z={z}
-                />
-              );
-            })}
-          </div>
-        </div>
+        <LandScape
+          colors={colorsNatural}
+          terrainData={terrains[active]}
+          tileSize={tileSize}
+        />
       </div>
-      <svg>
-        <defs>
-          <filter id="turb">
-            <feTurbulence baseFrequency="0.15" numOctaves="4" />
-            <feDisplacementMap in="SourceGraphic" scale="4" />
-          </filter>
-        </defs>
-      </svg>
     </>
   );
 }

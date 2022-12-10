@@ -5,7 +5,7 @@ import { useWindowSize } from './useWindowSize';
 import { LandScape } from './LandScape';
 
 /* next
- * - [ ] No ramp if diagonals are 1 z away but cardinals are more than 1.
+ * - [ ] Handle strokes on diagonal tiles. Svg?
  * - [ ] Rotate controls: left/right and up/down.
  * - [ ] Clean up code...
  * - [ ] Design interface so it can be used as a component.
@@ -22,6 +22,7 @@ import { LandScape } from './LandScape';
  *
  *
  * Done:
+ * - [x] No ramp if diagonals are 1 z away but cardinals are more than 1.
  * - [?] If both L and U are not ramps, then the tile is flat even if LU is a ramp.
  * - [x] Fix coloring on 0101 and 1010.
  * - [x] Only draw cliffs where there are cliffs, make sure cliffs cover angles.

@@ -124,20 +124,31 @@ export function DemoThree() {
   return (
     <>
       <div
-        className="fixed	inset-0 flex touch-none items-center justify-center"
+        className="fixed inset-0 flex touch-none items-center justify-center text-white"
         onPointerDown={startDragging}
         onPointerMove={updateCamera}
         onPointerUp={stopDragging}
       >
-        <div className="fixed bottom-5 left-5 z-10 flex select-none items-center justify-center rounded-lg bg-white p-2">
+        <div className="fixed bottom-5 left-5 z-10 select-none items-center justify-center rounded-lg bg-slate-500 p-2">
+          By{' '}
+          <a
+            className="underline decoration-slate-200 underline-offset-2	"
+            href="https://trashmoon.com/"
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            Saman Bemel Benrud ↗
+          </a>
+        </div>
+        <div className="fixed top-5 left-5 z-10 flex select-none items-center justify-center rounded-lg bg-slate-500 p-2">
           <div
-            className="mr-1 cursor-pointer rounded-md bg-white bg-blue-200 px-2 py-1"
+            className="mr-1 cursor-pointer rounded-md bg-white bg-slate-600 px-2 py-1"
             onClick={() => setActive((v) => (v > 0 ? v - 1 : count - 1))}
           >
             ←
           </div>
           <div
-            className="cursor-pointer	rounded-md bg-white bg-blue-200 px-2 py-1"
+            className="cursor-pointer	rounded-md bg-white bg-slate-600 px-2 py-1"
             onClick={() => setActive((v) => (v < count - 1 ? v + 1 : 0))}
           >
             →
@@ -145,11 +156,11 @@ export function DemoThree() {
           <span className="ml-2 mr-2 w-8 border-r border-solid border-black pr-2">
             {active}
           </span>
-          <div className="ml-2 cursor-pointer py-1 text-gray-500">
+          <div className="ml-2 cursor-pointer py-1 text-gray-300">
             Click and drag to rotate.
           </div>
           <div
-            className="ml-2	 cursor-pointer rounded-md bg-white bg-blue-200 px-2 py-1"
+            className="ml-2	 cursor-pointer rounded-md bg-white bg-slate-600 px-2 py-1"
             onClick={() => {
               updateBaseX(BASE_X);
               updateBaseZ(BASE_Z);
@@ -160,7 +171,7 @@ export function DemoThree() {
             Reset position
           </div>
           <div
-            className="w-30 ml-2 cursor-pointer	rounded-md bg-white bg-blue-200 px-2 py-1"
+            className="w-30 ml-2 cursor-pointer	rounded-md bg-white bg-slate-600 px-2 py-1"
             onClick={() => setPixelate((v) => !v)}
           >
             Pixelate: {pixelate ? 'ON' : 'OFF'}

@@ -1,7 +1,7 @@
 import { scale, RADIAN_TO_ANGLE } from './perspective-utils';
 import { colord, extend } from 'colord';
 import mixPlugin from 'colord/plugins/mix';
-import { memo, CSSProperties, useCallback } from 'react';
+import { memo, CSSProperties, useCallback, ReactNode } from 'react';
 extend([mixPlugin]);
 
 const bgColor = '#1E293B';
@@ -32,9 +32,15 @@ function getRamp({
   const data = {
     // primary z plane
     transform: '',
+    // note:  some of the clipPaths are slightly larger than the tile to cover hairline
+    // gaps caused by browser rendering issues.
     clipPath: '',
     anchor: '',
     fill: '',
+
+    // hack that we only need to apply to the split ramps to hide the hairline gap
+    // between both planes
+    hideHairline: false,
 
     // secondary z plane, used for ramps that use half a tile.
     extraZPlaneShow: false,
@@ -62,6 +68,7 @@ function getRamp({
 
     data.extraZPlaneShow = true;
     data.extraZPlaneOffset = 0.5;
+    data.hideHairline = true;
 
     // bottom
     if (s === 0b1010) {
@@ -82,7 +89,7 @@ function getRamp({
       // / |
       // \ |
       // .\|
-      data.extraZPlaneClipPath = 'polygon(100% 0, 0 50%, 100% 100%)';
+      data.extraZPlaneClipPath = 'polygon(0 50%, 102.5% -5%, 102.5% 105%)';
       data.extraZPlaneTransform = `
       translateZ(${zTile / 2}px)
       rotateZ(45deg)
@@ -96,7 +103,7 @@ function getRamp({
       // ./\.
       // /  \
       // ----
-      data.clipPath = 'polygon(0 100%, 50% 0, 100% 100%)';
+      data.clipPath = 'polygon(50% 0, 102.5% 105%, -2.5% 105%)';
       data.anchor = 'bottom right';
       data.transform = `
       translateZ(${zTile}px)
@@ -115,7 +122,8 @@ function getRamp({
       rotateX(-${singleCornerAngle}deg)
       scaleX(${SQ2})
       scaleY(${lengthScale / 2})
-      translateY(100%)`;
+      translateY(100%)
+      `;
     }
   }
 
@@ -156,7 +164,7 @@ function getRamp({
       // |  /
       // | /
       // |/ .
-      data.extraZPlaneClipPath = 'polygon(0 0, 100% 0, 0 100%)';
+      data.extraZPlaneClipPath = 'polygon(0 0, 102% 0, 0 102%)';
 
       // |\.
       // | \
@@ -177,7 +185,7 @@ function getRamp({
       // \  |
       //  \ |
       // . \|
-      data.extraZPlaneClipPath = 'polygon(0 0, 100% 0, 100% 100%)';
+      data.extraZPlaneClipPath = 'polygon(-2% 0, 100% 0, 100% 102%)';
 
       // ----
       // \  /
@@ -197,7 +205,7 @@ function getRamp({
       // | \
       // |  \
       // ----
-      data.extraZPlaneClipPath = 'polygon(0 0, 100% 100%, 0 100%)';
+      data.extraZPlaneClipPath = 'polygon(0 -2%, 102% 100%, 0 100%)';
 
       // ./\.
       // /  \
@@ -259,7 +267,7 @@ function getRamp({
       // |  /
       // | /
       // |/ .
-      data.extraZPlaneClipPath = 'polygon(0 0, 100% 0, 0 100%)';
+      data.extraZPlaneClipPath = 'polygon(0 0, 102% 0, 0 102%)';
 
       // |\.
       // | \
@@ -280,7 +288,7 @@ function getRamp({
       //  / |
       // /  |
       // ----
-      data.extraZPlaneClipPath = 'polygon(0 100%, 100% 0, 100% 100%)';
+      data.extraZPlaneClipPath = 'polygon(100% -2%, 100% 100%, -2% 100%)';
 
       // ./|
       // / |
@@ -301,7 +309,7 @@ function getRamp({
       // | \
       // |  \
       // ----
-      data.extraZPlaneClipPath = 'polygon(0 0, 100% 100%, 0 100%)';
+      data.extraZPlaneClipPath = 'polygon(0 -2%, 102% 100%, 0 100%)';
 
       // ./\.
       // /  \
@@ -321,7 +329,7 @@ function getRamp({
       // \  |
       //  \ |
       // . \|
-      data.extraZPlaneClipPath = 'polygon(0 0, 100% 0, 100% 100%)';
+      data.extraZPlaneClipPath = 'polygon(-2% 0, 100% 0, 100% 102%)';
 
       // ----
       // \  /
@@ -346,15 +354,17 @@ function Face({
   color,
   tileSize,
   style,
-  debug,
+  children,
   border,
+  hideHairline,
 }: {
   z: number;
   tileSize: number;
   style: CSSProperties;
-  debug?: string;
+  children?: ReactNode;
   color: string;
   border?: boolean;
+  hideHairline?: boolean;
 }) {
   return (
     <div
@@ -372,9 +382,11 @@ function Face({
         backgroundColor: color,
         // border: `1px solid rgba(0,0,0,0.2)`,
         ...style,
+        boxShadow: hideHairline ? `0 0 0 1px ${color}` : 'none',
+        overflow: 'visible',
       }}
     >
-      {debug}
+      {children}
     </div>
   );
 }
@@ -537,6 +549,7 @@ export function Tile({
     transform,
     clipPath,
     fill,
+    hideHairline,
   } = getRamp({
     tileSize,
     zStep,
@@ -545,6 +558,7 @@ export function Tile({
 
   // Main function for positioning elements iin 3d space.
   // Every tile face transform starts with this.
+  // need to multiply by 0.99 to hide hairline borders
   const toTranslate3d = useCallback(
     (offset = 0) => `translate3d(
     ${xOffset * 0.99}px,
@@ -597,12 +611,13 @@ export function Tile({
       {/* z facing pane */}
       <Face
         border={true}
-        // debug={printNumberAsBase2(signature)}
         color={fill || getColorFromZ(z, transform ? 0.5 : 0)}
+        hideHairline={hideHairline}
         style={{
           transform: `${translate3d} ${transform}`,
           clipPath,
           transformOrigin: anchor,
+          overflow: 'visible',
         }}
         tileSize={tileSize}
         z={z}
@@ -612,6 +627,7 @@ export function Tile({
       <Face
         border={true}
         color={getColorFromZ(z, extraZPlaneOffset)}
+        hideHairline={hideHairline}
         style={{
           transform: `${toTranslate3d(
             extraZPlaneOffset,

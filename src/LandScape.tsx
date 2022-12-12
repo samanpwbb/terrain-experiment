@@ -7,10 +7,12 @@ export function LandScape({
   tileSize,
   terrainData,
   colors,
+  pixelate,
 }: {
   tileSize: number;
   terrainData: string;
   colors: string[];
+  pixelate: boolean;
 }) {
   const getColorFromZ = useMemo(() => makeGetColorFromZ(colors), [colors]);
   const tiles = useMemo(() => processData(terrainData), [terrainData]);
@@ -21,7 +23,8 @@ export function LandScape({
         className="parent"
         style={{
           display: 'flex',
-          // filter: 'url("#pixelate")',
+          pointerEvents: 'none',
+          filter: pixelate ? 'url("#pixelate")' : 'none',
           alignItems: 'center',
           justifyContent: 'center',
           width: '100%',

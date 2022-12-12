@@ -1,5 +1,5 @@
 // basic perspective parameters
-// why does 57.2958 work here? 1 radian = 57.2958 degrees
+// 1 radian = 57.2958 degrees
 export const BASE_X = 57.2958;
 // export const BASE_X = 45;
 // T0DO: change base_z in order to rotate.

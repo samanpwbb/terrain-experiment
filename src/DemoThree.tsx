@@ -1,10 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { generateExpandedGround } from './generateData';
 import {
   setIsoCssVars,
@@ -17,15 +11,15 @@ import { useWindowSize } from './useWindowSize';
 import { LandScape } from './LandScape';
 
 /* next
- * - [ ] rotate with mouse:
+ * - [x] rotate with mouse:
      - left/right to rotate on z axis
       - up/down to rotate on y axis
- * - [ ] Design interface so it can be used as a component.
+   - [ ] Pan to load more tiles.
+ * - [ ] Release as a react component.
  * - [ ] Allow more than 10 levels.
  * - [ ] Generate from center rather that top left so we can expand in all directions.
  *
  * Maybe:
- * - [ ] Pan to explore.
  * - [ ] Click to raise / shift+click to lower.
  * - [ ] Water level overlay
  * - [ ] Jitter the vertexes ?
@@ -98,6 +92,7 @@ export function DemoThree() {
   const [active, setActive] = useState(18);
   const x = useRef(BASE_X);
   const z = useRef(BASE_Z);
+  const [pixelate, setPixelate] = useState(false);
 
   const [isDragging, setIsDragging] = useState(false);
 
@@ -119,6 +114,7 @@ export function DemoThree() {
       const newZ = clamp(0, z.current - e.movementX * 0.25, 90);
       updateBaseZ(newZ);
       z.current = newZ;
+      e.preventDefault();
     },
     [isDragging],
   );
@@ -128,32 +124,32 @@ export function DemoThree() {
   return (
     <>
       <div
-        className="fixed inset-0 flex items-center justify-center"
+        className="fixed	inset-0 flex touch-none items-center justify-center"
         onPointerDown={startDragging}
         onPointerMove={updateCamera}
         onPointerUp={stopDragging}
       >
-        <div className="fixed bottom-5 left-5 z-10 flex items-center justify-center bg-white p-2">
+        <div className="fixed bottom-5 left-5 z-10 flex select-none items-center justify-center rounded-lg bg-white p-2">
           <div
-            className="mr-1	 cursor-pointer rounded-md bg-white bg-teal-200 px-2 py-1"
+            className="mr-1 cursor-pointer rounded-md bg-white bg-blue-200 px-2 py-1"
             onClick={() => setActive((v) => (v > 0 ? v - 1 : count - 1))}
           >
             ←
           </div>
           <div
-            className="cursor-pointer	rounded-md bg-white bg-teal-200 px-2 py-1"
+            className="cursor-pointer	rounded-md bg-white bg-blue-200 px-2 py-1"
             onClick={() => setActive((v) => (v < count - 1 ? v + 1 : 0))}
           >
             →
           </div>
-          <span className="ml-2 mr-2 border-r border-solid border-black pr-2">
+          <span className="ml-2 mr-2 w-8 border-r border-solid border-black pr-2">
             {active}
           </span>
           <div className="ml-2 cursor-pointer py-1 text-gray-500">
             Click and drag to rotate.
           </div>
           <div
-            className="ml-2	 cursor-pointer rounded-md bg-white bg-teal-200 px-2 py-1"
+            className="ml-2	 cursor-pointer rounded-md bg-white bg-blue-200 px-2 py-1"
             onClick={() => {
               updateBaseX(BASE_X);
               updateBaseZ(BASE_Z);
@@ -163,9 +159,16 @@ export function DemoThree() {
           >
             Reset position
           </div>
+          <div
+            className="w-30 ml-2 cursor-pointer	rounded-md bg-white bg-blue-200 px-2 py-1"
+            onClick={() => setPixelate((v) => !v)}
+          >
+            Pixelate: {pixelate ? 'ON' : 'OFF'}
+          </div>
         </div>
         <LandScape
           colors={colorsNatural}
+          pixelate={pixelate}
           terrainData={terrains[active]}
           tileSize={tileSize}
         />

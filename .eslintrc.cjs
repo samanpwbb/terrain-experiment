@@ -9,6 +9,7 @@ module.exports = {
     'plugin:import/errors',
     'plugin:import/typescript',
     'plugin:react/recommended',
+    'plugin:react-hooks/recommended',
     'plugin:@typescript-eslint/recommended',
   ],
   overrides: [

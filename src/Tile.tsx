@@ -1,7 +1,7 @@
 import { scale, RADIAN_TO_ANGLE } from './perspective-utils';
 import { colord, extend } from 'colord';
 import mixPlugin from 'colord/plugins/mix';
-import { memo, CSSProperties } from 'react';
+import { memo, CSSProperties, useCallback } from 'react';
 extend([mixPlugin]);
 
 const bgColor = '#1E293B';
@@ -65,7 +65,11 @@ function getRamp({
 
     // bottom
     if (s === 0b1010) {
-      data.clipPath = 'polygon(0% 0, 100% 50%, 0% 100%)';
+      // |\.
+      // | \
+      // | /
+      // |/.
+      data.clipPath = 'polygon(0 0, 100% 50%, 0 100%)';
       data.anchor = 'bottom left';
       data.transform = `
       translateZ(${zTile}px)
@@ -74,7 +78,11 @@ function getRamp({
       scaleY(${SQ2})
       scaleX(${lengthScale / 2})`;
 
-      data.extraZPlaneClipPath = 'polygon(100% 0, 0% 50%, 100% 100%)';
+      // ./|
+      // / |
+      // \ |
+      // .\|
+      data.extraZPlaneClipPath = 'polygon(100% 0, 0 50%, 100% 100%)';
       data.extraZPlaneTransform = `
       translateZ(${zTile / 2}px)
       rotateZ(45deg)
@@ -85,6 +93,9 @@ function getRamp({
     }
 
     if (s === 0b0101) {
+      // ./\.
+      // /  \
+      // ----
       data.clipPath = 'polygon(0 100%, 50% 0, 100% 100%)';
       data.anchor = 'bottom right';
       data.transform = `
@@ -94,7 +105,10 @@ function getRamp({
       scaleX(${SQ2})
       scaleY(${lengthScale / 2})`;
 
-      data.extraZPlaneClipPath = 'polygon(0 0%, 50% 100%, 100% 0%)';
+      // ----
+      // \  /
+      // .\/.
+      data.extraZPlaneClipPath = 'polygon(0 0, 50% 100%, 100% 0)';
       data.extraZPlaneTransform = `
       translateZ(${zTile / 2}px)
       rotateZ(45deg)
@@ -117,8 +131,17 @@ function getRamp({
 
     // up
     if (s === 0b0100) {
+      // . /|
+      //  / |
+      // /  |
+      // ----
+      data.extraZPlaneClipPath = 'polygon(100% -1%, 100% 100%, -1% 100%)';
+
+      // ./|
+      // / |
+      // \ |
+      // .\|
       data.clipPath = 'polygon(100% 0, 0 50%, 100% 100%)';
-      data.extraZPlaneClipPath = 'polygon(100% 0%, 100% 100%, 0% 100%)';
       data.anchor = 'top right';
       data.transform = `
       rotateZ(45deg)
@@ -129,8 +152,17 @@ function getRamp({
 
     // down
     if (s === 0b0001) {
-      data.clipPath = 'polygon(0% 0, 100% 50%, 0% 100%)';
-      data.extraZPlaneClipPath = 'polygon(100% 0%, 0% 0%, 0% 100%)';
+      // ----
+      // |  /
+      // | /
+      // |/ .
+      data.extraZPlaneClipPath = 'polygon(0 0, 100% 0, 0 100%)';
+
+      // |\.
+      // | \
+      // | /
+      // |/.
+      data.clipPath = 'polygon(0 0, 100% 50%, 0 100%)';
       data.anchor = 'bottom left';
       data.transform = `
       rotateZ(45deg)
@@ -141,8 +173,16 @@ function getRamp({
 
     // left
     if (s === 0b1000) {
-      data.extraZPlaneClipPath = 'polygon(100% 0%, 0% 0%, 100% 100%)';
-      data.clipPath = 'polygon(0 0%, 50% 100%, 100% 0%)';
+      // ----
+      // \  |
+      //  \ |
+      // . \|
+      data.extraZPlaneClipPath = 'polygon(0 0, 100% 0, 100% 100%)';
+
+      // ----
+      // \  /
+      // .\/.
+      data.clipPath = 'polygon(0 0, 50% 100%, 100% 0)';
       data.anchor = 'top left';
       data.transform = `
       rotateZ(45deg)
@@ -153,8 +193,16 @@ function getRamp({
 
     // right
     if (s === 0b0010) {
-      data.clipPath = 'polygon(0 100%, 50% 0%, 100% 100%)';
-      data.extraZPlaneClipPath = 'polygon(100% 100%, 0% 100%, 0% 0%)';
+      // |\ .
+      // | \
+      // |  \
+      // ----
+      data.extraZPlaneClipPath = 'polygon(0 0, 100% 100%, 0 100%)';
+
+      // ./\.
+      // /  \
+      // ----
+      data.clipPath = 'polygon(0 100%, 50% 0, 100% 100%)';
       data.anchor = 'bottom right';
       data.transform = `
       rotateZ(45deg)
@@ -207,8 +255,17 @@ function getRamp({
 
     // bottom
     if (s === 0b1110) {
-      data.extraZPlaneClipPath = 'polygon(100% 0%, 0% 100%, 0% 0%)';
-      data.clipPath = 'polygon(0% 0, 100% 50%, 0% 100%)';
+      // ----
+      // |  /
+      // | /
+      // |/ .
+      data.extraZPlaneClipPath = 'polygon(0 0, 100% 0, 0 100%)';
+
+      // |\.
+      // | \
+      // | /
+      // |/.
+      data.clipPath = 'polygon(0 0, 100% 50%, 0 100%)';
       data.anchor = 'bottom left';
       data.transform = `
       translateZ(${z}px)
@@ -219,8 +276,17 @@ function getRamp({
 
     // top
     if (s === 0b1011) {
-      data.extraZPlaneClipPath = 'polygon(100% 0, 0 100%, 100% 100%)';
-      data.clipPath = 'polygon(100% 0, 0% 50%, 100% 100%)';
+      // . /|
+      //  / |
+      // /  |
+      // ----
+      data.extraZPlaneClipPath = 'polygon(0 100%, 100% 0, 100% 100%)';
+
+      // ./|
+      // / |
+      // \ |
+      // .\|
+      data.clipPath = 'polygon(100% 0, 0 50%, 100% 100%)';
       data.anchor = 'top right';
       data.transform = `
       translateZ(${z}px)
@@ -231,7 +297,15 @@ function getRamp({
 
     // left
     if (s === 0b1101) {
-      data.extraZPlaneClipPath = 'polygon(0% 100%, 100% 100%, 0% 0%)';
+      // |\ .
+      // | \
+      // |  \
+      // ----
+      data.extraZPlaneClipPath = 'polygon(0 0, 100% 100%, 0 100%)';
+
+      // ./\.
+      // /  \
+      // ----
       data.clipPath = 'polygon(0 100%, 50% 0, 100% 100%)';
       data.anchor = 'bottom right';
       data.transform = `
@@ -243,8 +317,16 @@ function getRamp({
 
     // right
     if (s === 0b0111) {
-      data.extraZPlaneClipPath = 'polygon(100% 100%, 0 0, 100% 0)';
-      data.clipPath = 'polygon(0 0%, 50% 100%, 100% 0%)';
+      // ----
+      // \  |
+      //  \ |
+      // . \|
+      data.extraZPlaneClipPath = 'polygon(0 0, 100% 0, 100% 100%)';
+
+      // ----
+      // \  /
+      // .\/.
+      data.clipPath = 'polygon(0 0, 50% 100%, 100% 0)';
       data.anchor = 'top left';
       data.transform = `
       translateZ(${z}px)
@@ -461,11 +543,16 @@ export function Tile({
     s: signature,
   });
 
-  const toTranslate3d = (offset = 0) => `translate3d(
-    ${xOffset * 1.1}px,
-    ${yOffset * 1.1}px,
+  // Main function for positioning elements iin 3d space.
+  // Every tile face transform starts with this.
+  const toTranslate3d = useCallback(
+    (offset = 0) => `translate3d(
+    ${xOffset * 0.99}px,
+    ${yOffset * 0.99}px,
     ${zOffset + offset * (zStep * tileSize)}px
-  )`;
+  )`,
+    [tileSize, xOffset, yOffset, zOffset, zStep],
+  );
 
   const translate3d = toTranslate3d();
 

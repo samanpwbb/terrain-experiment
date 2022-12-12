@@ -1,7 +1,7 @@
 import { processData } from './processData';
 import { MemoizedTile } from './Tile';
 import { makeGetColorFromZ } from './colors';
-import { useMemo, useCallback } from 'react';
+import { useMemo } from 'react';
 
 export function LandScape({
   tileSize,
@@ -12,7 +12,7 @@ export function LandScape({
   terrainData: string;
   colors: string[];
 }) {
-  const getColorFromZ = useCallback(makeGetColorFromZ(colors), [colors]);
+  const getColorFromZ = useMemo(() => makeGetColorFromZ(colors), [colors]);
   const tiles = useMemo(() => processData(terrainData), [terrainData]);
 
   return (

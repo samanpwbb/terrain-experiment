@@ -15,6 +15,11 @@ const twoUpRamps = new Set([0b1100, 0b0110, 0b1001, 0b0011]);
 const threeUpRamps = new Set([0b1110, 0b1101, 0b1011, 0b0111]);
 const splitRamps = new Set([0b1010, 0b0101]);
 
+// s is a 4-bit signature of the tile's neighbors.
+// 0b1000 = left
+// 0b0100 = top
+// 0b0010 = right
+// 0b0001 = bottom
 function getRamp({
   s,
   tileSize,
@@ -25,146 +30,137 @@ function getRamp({
   zStep: number;
 }) {
   const data = {
-    // primary plane
+    // primary z plane
     transform: '',
-    extraZOffset: 0,
     clipPath: '',
     anchor: '',
     fill: '',
 
-    // secondary plane, only used for ramps that use half a tile.
-    xyPlaneShow: false,
-    xyPlaneOffset: 0,
-    xyPlaneClipPath: '',
-    xyPlaneTransform: '',
+    // secondary z plane, used for ramps that use half a tile.
+    extraZPlaneShow: false,
+    extraZPlaneOffset: 0,
+    extraZPlaneClipPath: '',
+    extraZPlaneTransform: '',
   };
 
-  //        |\
-  //  ztile | \  scale
-  //        |  \
-  //        |___\
-  //        xtile
-  //
   const zTile = zStep * tileSize;
 
+  // This case wil never happen, we convert 0b1111 to 0b0000 on the next
+  // z level up in processData.
   if (s === 0b1111) {
-    data.extraZOffset = 1;
     return data;
   }
 
   // split ramps
   if (splitRamps.has(s)) {
-    const adjacent = SQ2 * tileSize * 0.5;
+    const squareDiagonal = SQ2 * tileSize;
+    const adjacent = squareDiagonal * 0.5;
     const opposite = zTile;
     const singleCornerAngle = Math.atan(opposite / adjacent) * RADIAN_TO_ANGLE;
-    const squareDiagonal = SQ2 * tileSize;
     const desiredLength = Math.hypot(zTile, squareDiagonal / 2);
     const lengthScale = desiredLength / (tileSize / 2);
 
-    data.xyPlaneShow = true;
-    data.xyPlaneOffset = 0.5;
-
-    const z = zStep * tileSize;
+    data.extraZPlaneShow = true;
+    data.extraZPlaneOffset = 0.5;
 
     // bottom
     if (s === 0b1010) {
       data.clipPath = 'polygon(0% 0, 100% 50%, 0% 100%)';
-      data.xyPlaneClipPath = 'polygon(100% 0, 0% 50%, 100% 100%)';
-      data.xyPlaneTransform = `
-      translateZ(${z / 2}px)
+      data.anchor = 'bottom left';
+      data.transform = `
+      translateZ(${zTile}px)
+      rotateZ(45deg)
+      rotateY(${singleCornerAngle}deg)
+      scaleY(${SQ2})
+      scaleX(${lengthScale / 2})`;
+
+      data.extraZPlaneClipPath = 'polygon(100% 0, 0% 50%, 100% 100%)';
+      data.extraZPlaneTransform = `
+      translateZ(${zTile / 2}px)
       rotateZ(45deg)
       rotateY(-${singleCornerAngle}deg)
       scaleY(${SQ2})
       scaleX(${lengthScale / 2})
-      translateX(-50%)`;
-
-      data.transform = `
-      translateZ(${z}px)
-      rotateZ(45deg)
-      rotateY(${singleCornerAngle}deg)
-      scaleY(${SQ2})
-      scaleX(${lengthScale / 2})
-      translateX(50%)`;
+      translateX(-100%)`;
     }
 
     if (s === 0b0101) {
       data.clipPath = 'polygon(0 100%, 50% 0, 100% 100%)';
+      data.anchor = 'bottom right';
       data.transform = `
-      translateZ(${z}px)
+      translateZ(${zTile}px)
       rotateZ(45deg)
       rotateX(${singleCornerAngle}deg)
       scaleX(${SQ2})
-      scaleY(${lengthScale / 2})
-      translateY(-50%)`;
+      scaleY(${lengthScale / 2})`;
 
-      data.xyPlaneClipPath = 'polygon(0 0%, 50% 100%, 100% 0%)';
-      data.xyPlaneTransform = `
-      translateZ(${z / 2}px)
+      data.extraZPlaneClipPath = 'polygon(0 0%, 50% 100%, 100% 0%)';
+      data.extraZPlaneTransform = `
+      translateZ(${zTile / 2}px)
       rotateZ(45deg)
       rotateX(-${singleCornerAngle}deg)
       scaleX(${SQ2})
       scaleY(${lengthScale / 2})
-      translateY(50%)`;
+      translateY(100%)`;
     }
   }
 
   // one-up ramps
   if (oneUpRamps.has(s)) {
-    const adjacent = SQ2 * tileSize * 0.5;
+    const squareDiagonal = SQ2 * tileSize;
+    const adjacent = squareDiagonal * 0.5;
     const opposite = zTile;
     const singleCornerAngle = Math.atan(opposite / adjacent) * RADIAN_TO_ANGLE;
-    const squareDiagonal = SQ2 * tileSize;
     const desiredLength = Math.hypot(zTile, squareDiagonal / 2);
     const xScale = desiredLength / (tileSize / 2);
-    data.xyPlaneShow = true;
+    data.extraZPlaneShow = true;
+
     // up
     if (s === 0b0100) {
       data.clipPath = 'polygon(100% 0, 0 50%, 100% 100%)';
-      data.xyPlaneClipPath = 'polygon(100% 0%, 100% 100%, 0% 100%)';
+      data.extraZPlaneClipPath = 'polygon(100% 0%, 100% 100%, 0% 100%)';
+      data.anchor = 'top right';
       data.transform = `
       rotateZ(45deg)
       rotateY(${singleCornerAngle}deg)
       scaleY(${SQ2})
-      scaleX(${xScale / 2})
-      translateX(-50%)`;
+      scaleX(${xScale / 2})`;
     }
 
     // down
     if (s === 0b0001) {
       data.clipPath = 'polygon(0% 0, 100% 50%, 0% 100%)';
-      data.xyPlaneClipPath = 'polygon(100% 0%, 0% 0%, 0% 100%)';
+      data.extraZPlaneClipPath = 'polygon(100% 0%, 0% 0%, 0% 100%)';
+      data.anchor = 'bottom left';
       data.transform = `
       rotateZ(45deg)
       rotateY(-${singleCornerAngle}deg)
       scaleY(${SQ2})
-      scaleX(${xScale / 2})
-      translateX(50%)`;
+      scaleX(${xScale / 2})`;
     }
 
     // left
     if (s === 0b1000) {
-      data.xyPlaneClipPath = 'polygon(100% 0%, 0% 0%, 100% 100%)';
+      data.extraZPlaneClipPath = 'polygon(100% 0%, 0% 0%, 100% 100%)';
       data.clipPath = 'polygon(0 0%, 50% 100%, 100% 0%)';
+      data.anchor = 'top left';
       data.transform = `
       rotateZ(45deg)
       rotateX(${singleCornerAngle}deg)
       scaleX(${SQ2})
-      scaleY(${xScale / 2})
-      translateY(50%)`;
+      scaleY(${xScale / 2})`;
     }
 
     // right
     if (s === 0b0010) {
-      data.xyPlaneShow = true;
       data.clipPath = 'polygon(0 100%, 50% 0%, 100% 100%)';
-      data.xyPlaneClipPath = 'polygon(100% 100%, 0% 100%, 0% 0%)';
-
+      data.extraZPlaneClipPath = 'polygon(100% 100%, 0% 100%, 0% 0%)';
+      data.anchor = 'bottom right';
       data.transform = `
       rotateZ(45deg)
       rotateX(-${singleCornerAngle}deg)
       scaleX(${SQ2})
-      scaleY(${xScale / 2})
-      translateY(-50%)`;
+      scaleY(${xScale / 2})`;
     }
 
     return data;
@@ -197,69 +193,64 @@ function getRamp({
 
   // three-up ramps
   if (threeUpRamps.has(s)) {
-    const adjacent = 1.41421356237 * tileSize * 0.5;
+    const squareDiagonal = SQ2 * tileSize;
+    const adjacent = squareDiagonal * 0.5;
     const opposite = zTile;
     const singleCornerAngle = Math.atan(opposite / adjacent) * RADIAN_TO_ANGLE;
-    const squareDiagonal = 1.41421356237 * tileSize;
     const desiredLength = Math.hypot(zTile, squareDiagonal / 2);
     const lengthScale = desiredLength / (tileSize / 2);
     const z = zStep * tileSize;
     const rotateZ = 45;
 
-    data.xyPlaneShow = true;
-    data.xyPlaneOffset = 1;
+    data.extraZPlaneShow = true;
+    data.extraZPlaneOffset = 1;
 
     // bottom
     if (s === 0b1110) {
-      data.xyPlaneClipPath = 'polygon(100% 0%, 0% 100%, 0% 0%)';
+      data.extraZPlaneClipPath = 'polygon(100% 0%, 0% 100%, 0% 0%)';
       data.clipPath = 'polygon(0% 0, 100% 50%, 0% 100%)';
+      data.anchor = 'bottom left';
       data.transform = `
       translateZ(${z}px)
       rotateZ(${rotateZ}deg)
       rotateY(${singleCornerAngle}deg)
-      scaleY(${SQ2})
-      scaleX(${lengthScale / 2})
-      translateX(50%)`;
+      scaleY(${SQ2}) scaleX(${lengthScale / 2})`;
     }
 
     // top
     if (s === 0b1011) {
-      data.xyPlaneClipPath = 'polygon(100% 0, 0 100%, 100% 100%)';
+      data.extraZPlaneClipPath = 'polygon(100% 0, 0 100%, 100% 100%)';
       data.clipPath = 'polygon(100% 0, 0% 50%, 100% 100%)';
+      data.anchor = 'top right';
       data.transform = `
       translateZ(${z}px)
       rotateZ(${rotateZ}deg)
       rotateY(-${singleCornerAngle}deg)
-      scaleY(${SQ2})
-      scaleX(${lengthScale / 2})
-      translateX(-50%)
-      `;
+      scaleY(${SQ2}) scaleX(${lengthScale / 2})`;
     }
 
     // left
     if (s === 0b1101) {
-      data.xyPlaneClipPath = 'polygon(0% 100%, 100% 100%, 0% 0%)';
+      data.extraZPlaneClipPath = 'polygon(0% 100%, 100% 100%, 0% 0%)';
       data.clipPath = 'polygon(0 100%, 50% 0, 100% 100%)';
+      data.anchor = 'bottom right';
       data.transform = `
       translateZ(${z}px)
       rotateZ(${rotateZ}deg)
       rotateX(${singleCornerAngle}deg)
-      scaleX(${SQ2})
-      scaleY(${lengthScale / 2})
-      translateY(-50%)`;
+      scaleX(${SQ2}) scaleY(${lengthScale / 2})`;
     }
 
     // right
     if (s === 0b0111) {
-      data.xyPlaneClipPath = 'polygon(100% 100%, 0 0, 100% 0)';
+      data.extraZPlaneClipPath = 'polygon(100% 100%, 0 0, 100% 0)';
       data.clipPath = 'polygon(0 0%, 50% 100%, 100% 0%)';
+      data.anchor = 'top left';
       data.transform = `
       translateZ(${z}px)
       rotateZ(${rotateZ}deg)
       rotateX(-${singleCornerAngle}deg)
-      scaleX(${SQ2})
-      scaleY(${lengthScale / 2})
-      translateY(50%)`;
+      scaleX(${SQ2}) scaleY(${lengthScale / 2})`;
     }
 
     return data;
@@ -274,16 +265,18 @@ function Face({
   tileSize,
   style,
   debug,
+  border,
 }: {
   z: number;
   tileSize: number;
   style: CSSProperties;
   debug?: string;
   color: string;
+  border?: boolean;
 }) {
   return (
     <div
-      className={`absolute`}
+      className={`${border && 'tile-border'} absolute`}
       style={{
         height: `${tileSize}px`,
         width: `${tileSize}px`,
@@ -295,7 +288,7 @@ function Face({
         display: 'flex',
         fontSize: 8,
         backgroundColor: color,
-        border: `4px solid ${bgColor}99`,
+        // border: `1px solid rgba(0,0,0,0.2)`,
         ...style,
       }}
     >
@@ -454,13 +447,12 @@ export function Tile({
   const xOffset = x * tileSize;
   const yOffset = y * tileSize;
   const {
-    xyPlaneShow,
-    xyPlaneClipPath,
-    xyPlaneOffset,
-    xyPlaneTransform,
+    extraZPlaneShow,
+    extraZPlaneClipPath,
+    extraZPlaneOffset,
+    extraZPlaneTransform,
     anchor,
     transform,
-    extraZOffset,
     clipPath,
     fill,
   } = getRamp({
@@ -470,12 +462,12 @@ export function Tile({
   });
 
   const toTranslate3d = (offset = 0) => `translate3d(
-    ${xOffset}px,
-    ${yOffset}px,
+    ${xOffset * 1.1}px,
+    ${yOffset * 1.1}px,
     ${zOffset + offset * (zStep * tileSize)}px
   )`;
 
-  const translate3d = toTranslate3d(extraZOffset);
+  const translate3d = toTranslate3d();
 
   const isLimitBottom = isNaN(diffs[3]);
   const isLimitRight = isNaN(diffs[2]);
@@ -517,8 +509,9 @@ export function Tile({
 
       {/* z facing pane */}
       <Face
+        border={true}
         // debug={printNumberAsBase2(signature)}
-        color={fill || getColorFromZ(z, extraZOffset + (transform ? 0.5 : 0))}
+        color={fill || getColorFromZ(z, transform ? 0.5 : 0)}
         style={{
           transform: `${translate3d} ${transform}`,
           clipPath,
@@ -530,12 +523,15 @@ export function Tile({
 
       {/* duplicate z facing plane used by masked 1-up and 3-up triangles */}
       <Face
-        color={getColorFromZ(z, xyPlaneOffset)}
+        border={true}
+        color={getColorFromZ(z, extraZPlaneOffset)}
         style={{
-          transform: `${toTranslate3d(xyPlaneOffset)} ${xyPlaneTransform}`,
-          opacity: xyPlaneShow ? 1 : 0,
+          transform: `${toTranslate3d(
+            extraZPlaneOffset,
+          )} ${extraZPlaneTransform}`,
+          opacity: extraZPlaneShow ? 1 : 0,
           transformOrigin: anchor,
-          clipPath: xyPlaneClipPath,
+          clipPath: extraZPlaneClipPath,
         }}
         tileSize={tileSize}
         z={z}
@@ -546,7 +542,9 @@ export function Tile({
         color={
           isLimitBottom
             ? bgColor
-            : colord(getColorFromZ(z, xyPlaneOffset)).mix(bgColor, 0.25).toHex()
+            : colord(getColorFromZ(z, extraZPlaneOffset))
+                .mix(bgColor, 0.25)
+                .toHex()
         }
         style={{
           opacity: showBottomPane ? 1 : 0,
@@ -564,7 +562,9 @@ export function Tile({
         color={
           isLimitRight
             ? bgColor
-            : colord(getColorFromZ(z, xyPlaneOffset)).mix(bgColor, 0.66).toHex()
+            : colord(getColorFromZ(z, extraZPlaneOffset))
+                .mix(bgColor, 0.66)
+                .toHex()
         }
         style={{
           opacity: showRightPane ? 1 : 0,

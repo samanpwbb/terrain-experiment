@@ -21,7 +21,7 @@ export function LandScape({
         className="parent"
         style={{
           display: 'flex',
-          filter: "url('#pixelate')",
+          // filter: 'url("#pixelate")',
           alignItems: 'center',
           justifyContent: 'center',
           width: '100%',
@@ -51,22 +51,22 @@ export function LandScape({
           })}
         </div>
       </div>
-      <svg style={{ display: 'none' }}>
+      <svg>
         <defs>
           <filter id="turb">
-            <feTurbulence baseFrequency="0.15" numOctaves="4" />
-            <feDisplacementMap in="SourceGraphic" scale="5" />
+            <feTurbulence baseFrequency="0.15" numOctaves="3" />
+            <feDisplacementMap in="SourceGraphic" scale="10" />
           </filter>
         </defs>
       </svg>
 
       <svg>
-        <filter id="pixelate" x="0" y="0">
-          <feFlood height="2" width="2" />
-          <feComposite height="4" width="4" />
+        <filter id="pixelate">
+          <feFlood height="2" width="2" x="2" y="2" />
+          <feComposite height="6" width="6" />
           <feTile result="a" />
           <feComposite in="SourceGraphic" in2="a" operator="in" />
-          <feMorphology operator="dilate" radius="2.5" />
+          <feMorphology operator="dilate" radius="2" />
         </filter>
       </svg>
     </>

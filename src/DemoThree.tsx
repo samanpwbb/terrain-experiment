@@ -1,18 +1,28 @@
-import { useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import { generateExpandedGround } from './generateData';
-import { setIsoCssVars, updateBaseX } from './perspective-utils';
+import {
+  setIsoCssVars,
+  updateBaseX,
+  BASE_X,
+  BASE_Z,
+  updateBaseZ,
+} from './perspective-utils';
 import { useWindowSize } from './useWindowSize';
 import { LandScape } from './LandScape';
 
 /* next
- * - [ ] Handle strokes on diagonal tiles. Svg?
- * - [ ] Rotate controls: left/right and up/down.
- * - [ ] Clean up code...
+ * - [ ] rotate with mouse:
+     - left/right to rotate on z axis
+      - up/down to rotate on y axis
  * - [ ] Design interface so it can be used as a component.
- * - [ ] Pass in data.
- * - [ ] Pass in color ramp.
  * - [ ] Allow more than 10 levels.
- * - [ ] start generating from center rather that top left so we can expand in all directions.
+ * - [ ] Generate from center rather that top left so we can expand in all directions.
  *
  * Maybe:
  * - [ ] Pan to explore.
@@ -22,6 +32,10 @@ import { LandScape } from './LandScape';
  *
  *
  * Done:
+ * - [x] Pass in data.
+ * - [x] Pass in color ramp.
+ * - [x] Clean up code...
+ * - [x] Handle strokes on diagonal tiles. Svg?
  * - [x] No ramp if diagonals are 1 z away but cardinals are more than 1.
  * - [?] If both L and U are not ramps, then the tile is flat even if LU is a ramp.
  * - [x] Fix coloring on 0101 and 1010.
@@ -63,6 +77,10 @@ for (let i = 0; i < count; i++) {
   terrains.push(gen());
 }
 
+function clamp(min: number, val: number, max: number) {
+  return Math.min(Math.max(min, val), max);
+}
+
 export const colorsNatural = [
   'hsla(330 100% 80%)',
   'hsla(280 100% 90%)',
@@ -78,52 +96,72 @@ export const colorsNatural = [
 
 export function DemoThree() {
   const [active, setActive] = useState(18);
+  const x = useRef(BASE_X);
+  const z = useRef(BASE_Z);
+
+  const [isDragging, setIsDragging] = useState(false);
+
+  const startDragging = () => setIsDragging(true);
+  const stopDragging = () => setIsDragging(false);
 
   const windowSize = useWindowSize();
   const tileSize = Math.round(baseTileSize + windowSize[0] * 0.0125);
+
+  // drag left/right to update baseX
+  // drag up/down to update baseZ
+  const updateCamera = useCallback(
+    (e: React.PointerEvent) => {
+      if (!isDragging) return;
+      const newX = clamp(0, x.current - e.movementY * 0.25, 90);
+      updateBaseX(newX);
+      x.current = newX;
+
+      const newZ = clamp(0, z.current - e.movementX * 0.25, 90);
+      updateBaseZ(newZ);
+      z.current = newZ;
+    },
+    [isDragging],
+  );
 
   if (windowSize[0] === 0) return null;
 
   return (
     <>
-      <div className="fixed inset-0 flex items-center justify-center">
-        <div className="padding-5 fixed bottom-5 left-5 z-10 flex items-center justify-center bg-white">
+      <div
+        className="fixed inset-0 flex items-center justify-center"
+        onPointerDown={startDragging}
+        onPointerMove={updateCamera}
+        onPointerUp={stopDragging}
+      >
+        <div className="fixed bottom-5 left-5 z-10 flex items-center justify-center bg-white p-2">
           <div
-            className="cursor-pointer bg-white px-2 py-1"
+            className="mr-1	 cursor-pointer rounded-md bg-white bg-teal-200 px-2 py-1"
             onClick={() => setActive((v) => (v > 0 ? v - 1 : count - 1))}
           >
             ←
           </div>
-          <span className="w-4 text-center opacity-50">{active}</span>
           <div
-            className="cursor-pointer bg-white px-2 py-1"
+            className="cursor-pointer	rounded-md bg-white bg-teal-200 px-2 py-1"
             onClick={() => setActive((v) => (v < count - 1 ? v + 1 : 0))}
           >
             →
           </div>
-          <div
-            className="ml-2 cursor-pointer bg-white px-2 py-1"
-            onClick={() => updateBaseX(0)}
-          >
-            0°
+          <span className="ml-2 mr-2 border-r border-solid border-black pr-2">
+            {active}
+          </span>
+          <div className="ml-2 cursor-pointer py-1 text-gray-500">
+            Click and drag to rotate.
           </div>
           <div
-            className="ml-2 cursor-pointer bg-white px-2 py-1"
-            onClick={() => updateBaseX(30)}
+            className="ml-2	 cursor-pointer rounded-md bg-white bg-teal-200 px-2 py-1"
+            onClick={() => {
+              updateBaseX(BASE_X);
+              updateBaseZ(BASE_Z);
+              x.current = BASE_X;
+              z.current = BASE_Z;
+            }}
           >
-            30°
-          </div>
-          <div
-            className="ml-2 cursor-pointer bg-white px-2 py-1"
-            onClick={() => updateBaseX(45)}
-          >
-            45°
-          </div>
-          <div
-            className="ml-2 cursor-pointer bg-white px-2 py-1"
-            onClick={() => updateBaseX(57.2958)}
-          >
-            57.2958°
+            Reset position
           </div>
         </div>
         <LandScape

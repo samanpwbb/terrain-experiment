@@ -30,7 +30,8 @@ export function LandScape({
           bottom: 0,
           paddingTop: '15vh',
           /* if we want perspective, uncomment: */
-          transformStyle: 'preserve-3d',
+          // transformStyle: 'preserve-3d',
+          transformOrigin: 'center',
         }}
       >
         <div className="isometric">

@@ -1,4 +1,4 @@
-import { scale, RADIAN_TO_ANGLE } from './perspective-utils';
+import { BASE_SCALE, RADIAN_TO_ANGLE } from './perspective-utils';
 import { colord, extend } from 'colord';
 import mixPlugin from 'colord/plugins/mix';
 import { memo, CSSProperties, useCallback, ReactNode } from 'react';
@@ -535,7 +535,7 @@ export function Tile({
   diffs: number[];
   getColorFromZ: (z: number, offset: number) => string;
 }) {
-  const zStep = scale * stepSize;
+  const zStep = BASE_SCALE * stepSize;
   const zBase = floorHeight + z * zStep;
   const zOffset = zBase * tileSize;
   const xOffset = x * tileSize;

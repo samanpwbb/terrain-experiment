@@ -94,7 +94,7 @@ export function DemoThree() {
           >
             ←
           </div>
-          <span className="opacity-50">{active}</span>
+          <span className="w-4 text-center opacity-50">{active}</span>
           <div
             className="cursor-pointer bg-white px-2 py-1"
             onClick={() => setActive((v) => (v < count - 1 ? v + 1 : 0))}

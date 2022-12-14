@@ -57,9 +57,9 @@ import { LandScape } from './LandScape';
  * - [ ] Allow ramps to angle up to two tiles not just one.
  */
 
-const tiles = 3;
+const tiles = 5;
 const levels = 10;
-const baseTileSize = 50;
+const baseTileSize = 30;
 
 setIsoCssVars();
 
@@ -89,7 +89,7 @@ export const colorsNatural = [
 ].reverse();
 
 export function DemoThree() {
-  const [active, setActive] = useState(18);
+  const [active, setActive] = useState(0);
   const x = useRef(BASE_X);
   const z = useRef(BASE_Z);
   const [pixelate, setPixelate] = useState(false);

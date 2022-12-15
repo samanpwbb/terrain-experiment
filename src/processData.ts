@@ -114,31 +114,29 @@ function getEntry(
   return [x, y, z, sig, lDiff, uDiff, rDiff, dDiff];
 }
 
-export function processData(ground: string): Terrain {
-  const rows = ground.split('\n');
+export function processData(ground: number[][]): Terrain {
+  const rows = ground;
   const tiles = {} as Terrain;
   const invalidPositions = new Set<string>();
   rows.forEach((row, y) => {
     const midY = Math.round(rows.length / 2);
     const relativeY = y - midY;
-    const col = row.split('');
-    const midX = Math.round(col.length / 2);
-    return col.forEach((zStr, x) => {
-      const z = parseInt(zStr);
+    const midX = Math.round(row.length / 2);
+    return row.forEach((z, x) => {
       const relativeX = x - midX;
       tiles[`${relativeX},${relativeY}`] = getEntry(
         relativeX,
         relativeY,
         z,
         {
-          l: Number(rows[y]?.[x - 1]),
-          lu: Number(rows[y - 1]?.[x - 1]),
-          u: Number(rows[y - 1]?.[x]),
-          ru: Number(rows[y - 1]?.[x + 1]),
-          r: Number(rows[y][x + 1]),
-          rd: Number(rows[y + 1]?.[x + 1]),
-          d: Number(rows[y + 1]?.[x]),
-          ld: Number(rows[y + 1]?.[x - 1]),
+          l: rows[y]?.[x - 1],
+          lu: rows[y - 1]?.[x - 1],
+          u: rows[y - 1]?.[x],
+          ru: rows[y - 1]?.[x + 1],
+          r: rows[y][x + 1],
+          rd: rows[y + 1]?.[x + 1],
+          d: rows[y + 1]?.[x],
+          ld: rows[y + 1]?.[x - 1],
         },
         invalidPositions,
       );

@@ -1,21 +1,53 @@
 import { processData } from './processData';
 import { MemoizedTile } from './Tile';
 import { makeGetColorFromZ } from './colors';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { getVisibleTiles } from './getVisibleTiles';
 
 export function LandScape({
   tileSize,
   terrainData,
   colors,
+  perimeter,
   pixelate,
 }: {
   tileSize: number;
-  terrainData: string;
+  perimeter: number;
+  terrainData: number[][];
   colors: string[];
   pixelate: boolean;
 }) {
   const getColorFromZ = useMemo(() => makeGetColorFromZ(colors), [colors]);
+  const [center, setCenter] = useState<[number, number]>([0, 0]);
+
   const tiles = useMemo(() => processData(terrainData), [terrainData]);
+  const visible = useMemo(
+    () => getVisibleTiles(tiles, center, perimeter),
+    [center, perimeter, tiles],
+  );
+
+  // use arrow keys to update center
+  const handleKeyDown = (e: KeyboardEvent) => {
+    switch (e.key) {
+      case 'ArrowUp':
+        setCenter((c) => [c[0], c[1] - 1]);
+        break;
+      case 'ArrowDown':
+        setCenter((c) => [c[0], c[1] + 1]);
+        break;
+      case 'ArrowLeft':
+        setCenter((c) => [c[0] - 1, c[1]]);
+        break;
+      case 'ArrowRight':
+        setCenter((c) => [c[0] + 1, c[1]]);
+        break;
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
     <>
@@ -38,8 +70,8 @@ export function LandScape({
         }}
       >
         <div className="isometric">
-          {Object.keys(tiles).map((k) => {
-            const [x, y, z, s, ...diffs] = tiles[k];
+          {Object.keys(visible).map((k) => {
+            const [x, y, z, s, ...diffs] = visible[k];
             return (
               <MemoizedTile
                 diffs={diffs}

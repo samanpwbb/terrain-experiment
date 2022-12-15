@@ -57,14 +57,15 @@ import { LandScape } from './LandScape';
  * - [ ] Allow ramps to angle up to two tiles not just one.
  */
 
-const tiles = 5;
+const tiles = 120;
 const levels = 10;
-const baseTileSize = 30;
+const baseTileSize = 60;
+const perimeter = 8;
 
 setIsoCssVars();
 
 const gen = () => generateExpandedGround(levels, undefined, tiles);
-const terrains = [] as string[];
+const terrains = [] as number[][][];
 // pregenerate some terrain
 const count = 50;
 for (let i = 0; i < count; i++) {
@@ -179,6 +180,7 @@ export function DemoThree() {
         </div>
         <LandScape
           colors={colorsNatural}
+          perimeter={perimeter}
           pixelate={pixelate}
           terrainData={terrains[active]}
           tileSize={tileSize}

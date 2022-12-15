@@ -13,7 +13,7 @@ const defaultGenerator = makeNumberGenerator(1);
 export { defaultGenerator, makeNumberGenerator };
 
 function smooth(curr: number, ...more: number[]) {
-  const vals = [curr, ...more].filter((v) => !isNaN(v)) as number[];
+  const vals = [curr, ...more].map((v) => (isNaN(v) ? curr : v)) as number[];
   const avg = Math.floor(vals.reduce((a, b) => a + b, 0) / vals.length);
   if (avg < 3) return 2;
   return avg;
@@ -39,9 +39,21 @@ export function generateExpandedGround(
         row3.push(forceZ);
       } else {
         const val = Math.floor(((v + 1) / 2) * levels);
-        row1.push(wiggle(val, rand), wiggle(val, rand), wiggle(val, rand));
-        row2.push(wiggle(val, rand), wiggle(val, rand), wiggle(val, rand));
-        row3.push(wiggle(val, rand), wiggle(val, rand), wiggle(val, rand));
+        row1.push(
+          wiggle(val, rand, 3, levels - 1),
+          wiggle(val, rand, 3, levels - 1),
+          wiggle(val, rand, 3, levels - 1),
+        );
+        row2.push(
+          wiggle(val, rand, 3, levels - 1),
+          wiggle(val, rand, 3, levels - 1),
+          wiggle(val, rand, 3, levels - 1),
+        );
+        row3.push(
+          wiggle(val, rand, 3, levels - 1),
+          wiggle(val, rand, 3, levels - 1),
+          wiggle(val, rand, 3, levels - 1),
+        );
       }
     }
     ground.push(row1, row2, row3);
@@ -73,7 +85,7 @@ export function generateExpandedGround(
   });
 }
 
-function wiggle(v: number, g: () => number, mod = 2) {
-  const nv = Math.min(9, Math.max(0, Math.floor(v + (mod * g() - 0.5))));
+function wiggle(v: number, g: () => number, mod = 2, max = 9) {
+  const nv = Math.min(max, Math.max(0, Math.floor(v + mod * (g() - 0.5))));
   return nv;
 }

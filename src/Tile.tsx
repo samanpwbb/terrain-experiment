@@ -372,9 +372,10 @@ function Face({
       style={{
         height: `${tileSize}px`,
         width: `${tileSize}px`,
-        transition: `all ${
-          100 + Math.abs(floorHeight + z) * 50
-        }ms, clip-path 0ms`,
+        // transition: `all ${
+        //   100 + Math.abs(floorHeight + z) * 50
+        // }ms, clip-path 0ms`,
+        transition: `all 250ms, clip-path 0ms`,
         alignItems: 'center',
         justifyContent: 'center',
         display: 'flex',

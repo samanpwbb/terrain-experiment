@@ -52,7 +52,6 @@ export function LandScape({
   return (
     <>
       <div
-        className="parent"
         style={{
           display: 'flex',
           pointerEvents: 'none',
@@ -71,10 +70,11 @@ export function LandScape({
       >
         <div className="isometric">
           {Object.keys(visible).map((k) => {
-            const [x, y, z, s, ...diffs] = visible[k];
+            const [x, y, z, s, l, u, r, d, fade] = visible[k];
             return (
               <MemoizedTile
-                diffs={diffs}
+                diffs={[l, u, r, d]}
+                fade={fade}
                 getColorFromZ={getColorFromZ}
                 key={k}
                 signature={s}

@@ -59,8 +59,8 @@ import { LandScape } from './LandScape';
 
 const tiles = 120;
 const levels = 10;
-const baseTileSize = 60;
-const perimeter = 8;
+const baseTileSize = 80;
+const perimeter = 10;
 
 setIsoCssVars();
 

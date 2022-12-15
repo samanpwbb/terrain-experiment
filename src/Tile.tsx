@@ -4,7 +4,7 @@ import mixPlugin from 'colord/plugins/mix';
 import { memo, CSSProperties, useCallback, ReactNode } from 'react';
 extend([mixPlugin]);
 
-const bgColor = '#1E293B';
+const bgColor = 'rgb(51 65 85)';
 const floorHeight = 0;
 const stepSize = 0.25;
 
@@ -357,6 +357,7 @@ function Face({
   children,
   border,
   hideHairline,
+  fade,
 }: {
   z: number;
   tileSize: number;
@@ -365,7 +366,9 @@ function Face({
   color: string;
   border?: boolean;
   hideHairline?: boolean;
+  fade: number;
 }) {
+  const finalColor = colord(color).mix(bgColor, fade).toHex();
   return (
     <div
       className={`${border && 'tile-border'} absolute`}
@@ -375,15 +378,15 @@ function Face({
         // transition: `all ${
         //   100 + Math.abs(floorHeight + z) * 50
         // }ms, clip-path 0ms`,
-        transition: `all 250ms, clip-path 0ms`,
+        transition: `all 250ms`,
         alignItems: 'center',
         justifyContent: 'center',
         display: 'flex',
         fontSize: 8,
-        backgroundColor: color,
+        backgroundColor: colord(color).mix(bgColor, fade).toHex(),
         // border: `1px solid rgba(0,0,0,0.2)`,
         ...style,
-        boxShadow: hideHairline ? `0 0 0 1px ${color}` : 'none',
+        boxShadow: hideHairline ? `0 0 0 1px ${finalColor}` : 'none',
         overflow: 'visible',
       }}
     >
@@ -526,12 +529,14 @@ export function Tile({
   signature,
   diffs,
   getColorFromZ,
+  fade,
 }: {
   tileSize: number;
   x: number;
   y: number;
   z: number;
   signature: number;
+  fade: number;
   // [0, 1, 2, 3] = [left, up, right, down]
   diffs: number[];
   getColorFromZ: (z: number, offset: number) => string;
@@ -597,6 +602,7 @@ export function Tile({
             getColorFromZ,
             rampEdgeData?.anchor as 'bottom' | 'right',
           )}
+          fade={fade}
           key={i}
           style={{
             opacity: rampEdgeData ? 1 : 0,
@@ -613,6 +619,7 @@ export function Tile({
       <Face
         border={true}
         color={fill || getColorFromZ(z, transform ? 0.5 : 0)}
+        fade={fade}
         hideHairline={hideHairline}
         style={{
           transform: `${translate3d} ${transform}`,
@@ -628,6 +635,7 @@ export function Tile({
       <Face
         border={true}
         color={getColorFromZ(z, extraZPlaneOffset)}
+        fade={fade}
         hideHairline={hideHairline}
         style={{
           transform: `${toTranslate3d(
@@ -650,6 +658,7 @@ export function Tile({
                 .mix(bgColor, 0.25)
                 .toHex()
         }
+        fade={fade}
         style={{
           opacity: showBottomPane ? 1 : 0,
           transform: `${translate3d} rotateX(90deg) scaleY(${
@@ -670,6 +679,7 @@ export function Tile({
                 .mix(bgColor, 0.66)
                 .toHex()
         }
+        fade={fade}
         style={{
           opacity: showRightPane ? 1 : 0,
           transform: `${translate3d} rotateY(90deg) scaleX(${

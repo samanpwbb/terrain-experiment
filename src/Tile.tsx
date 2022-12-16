@@ -2,11 +2,9 @@ import { BASE_SCALE, RADIAN_TO_ANGLE } from './perspective-utils';
 import { colord, extend } from 'colord';
 import mixPlugin from 'colord/plugins/mix';
 import { memo, CSSProperties, useCallback, ReactNode } from 'react';
-extend([mixPlugin]);
+import { animated } from '@react-spring/web';
 
-const bgColor = 'rgb(51 65 85)';
-const floorHeight = 0;
-const stepSize = 0.25;
+extend([mixPlugin]);
 
 const SQ2 = 1.41421356237;
 
@@ -358,8 +356,13 @@ function Face({
   border,
   hideHairline,
   fade,
+  bgColor,
+  floorHeight,
+  hasFade,
+  animation,
 }: {
   z: number;
+  animation: any;
   tileSize: number;
   style: CSSProperties;
   children?: ReactNode;
@@ -367,31 +370,36 @@ function Face({
   border?: boolean;
   hideHairline?: boolean;
   fade: number;
+  hasFade: boolean;
+  bgColor: string;
+  floorHeight: number;
 }) {
   const finalColor = colord(color).mix(bgColor, fade).toHex();
+  const transition = hasFade
+    ? 'all 250ms linear'
+    : `all ${100 + Math.abs(floorHeight + z) * 50}ms`;
+
   return (
-    <div
+    <animated.div
       className={`${border && 'tile-border'} absolute`}
       style={{
         height: `${tileSize}px`,
         width: `${tileSize}px`,
-        // transition: `all ${
-        //   100 + Math.abs(floorHeight + z) * 50
-        // }ms, clip-path 0ms`,
-        transition: `all 250ms`,
+        transition,
         alignItems: 'center',
         justifyContent: 'center',
         display: 'flex',
         fontSize: 8,
-        backgroundColor: colord(color).mix(bgColor, fade).toHex(),
-        // border: `1px solid rgba(0,0,0,0.2)`,
+        backgroundColor: finalColor,
+        border: border ? `3px solid rgba(0,0,0,0.2)` : null,
         ...style,
         boxShadow: hideHairline ? `0 0 0 1px ${finalColor}` : 'none',
         overflow: 'visible',
+        ...animation,
       }}
     >
       {children}
-    </div>
+    </animated.div>
   );
 }
 
@@ -416,6 +424,7 @@ function getRampEdgeData(
   scale: number,
   isLimitBottom: boolean,
   isLimitRight: boolean,
+  bgColor: string,
 ): [RampEdgeData | null, RampEdgeData | null] {
   const result = [null, null] as [RampEdgeData | null, RampEdgeData | null];
 
@@ -501,6 +510,7 @@ function getRampPaneBackground(
   z: number,
   getColorFromZ: (z: number, offset: number) => string,
   tint: 'bottom' | 'right' | null,
+  bgColor: string,
 ) {
   if (!rampEdgeData) return '';
 
@@ -508,13 +518,13 @@ function getRampPaneBackground(
 
   if (tint === 'bottom') {
     return colord(getColorFromZ(z, rampEdgeData.zMod))
-      .mix(bgColor, 0.25)
+      .mix(bgColor, 0.2)
       .toHex();
   }
 
   if (tint === 'right') {
     return colord(getColorFromZ(z, rampEdgeData?.zMod))
-      .mix(bgColor, 0.66)
+      .mix(bgColor, 0.3)
       .toHex();
   }
 
@@ -529,7 +539,13 @@ export function Tile({
   signature,
   diffs,
   getColorFromZ,
+  hasFade,
   fade,
+  animation,
+  bgColor = 'rgb(51 65 85)',
+  floorHeight = 0,
+  stepSize = 0.25,
+  border = false,
 }: {
   tileSize: number;
   x: number;
@@ -537,9 +553,15 @@ export function Tile({
   z: number;
   signature: number;
   fade: number;
+  hasFade: boolean;
+  animation: any;
+  border: boolean;
   // [0, 1, 2, 3] = [left, up, right, down]
   diffs: number[];
   getColorFromZ: (z: number, offset: number) => string;
+  bgColor?: string;
+  floorHeight?: number;
+  stepSize?: number;
 }) {
   const zStep = BASE_SCALE * stepSize;
   const zBase = floorHeight + z * zStep;
@@ -582,13 +604,13 @@ export function Tile({
   const showRightPane = diffs[2] < -1 || isLimitRight;
   const sideIdxBottom = isLimitBottom ? z : -diffs[3];
   const sideIdxRight = isLimitRight ? z : -diffs[2];
-
   const edges = getRampEdgeData(
     signature,
     diffs,
     zStep,
     isLimitBottom,
     isLimitRight,
+    bgColor,
   );
 
   return (
@@ -596,13 +618,18 @@ export function Tile({
       {/* duplicate x and y panes to fill gaps created by  ramp panes */}
       {edges.map((rampEdgeData, i) => (
         <Face
+          animation={animation}
+          bgColor={bgColor}
           color={getRampPaneBackground(
             rampEdgeData,
             z,
             getColorFromZ,
             rampEdgeData?.anchor as 'bottom' | 'right',
+            bgColor,
           )}
           fade={fade}
+          floorHeight={floorHeight}
+          hasFade={hasFade}
           key={i}
           style={{
             opacity: rampEdgeData ? 1 : 0,
@@ -617,9 +644,13 @@ export function Tile({
 
       {/* z facing pane */}
       <Face
-        border={true}
+        animation={animation}
+        bgColor={bgColor}
+        border={border}
         color={fill || getColorFromZ(z, transform ? 0.5 : 0)}
         fade={fade}
+        floorHeight={floorHeight}
+        hasFade={hasFade}
         hideHairline={hideHairline}
         style={{
           transform: `${translate3d} ${transform}`,
@@ -633,9 +664,13 @@ export function Tile({
 
       {/* duplicate z facing plane used by masked 1-up and 3-up triangles */}
       <Face
-        border={true}
+        animation={animation}
+        bgColor={bgColor}
+        border={border}
         color={getColorFromZ(z, extraZPlaneOffset)}
         fade={fade}
+        floorHeight={floorHeight}
+        hasFade={hasFade}
         hideHairline={hideHairline}
         style={{
           transform: `${toTranslate3d(
@@ -651,14 +686,18 @@ export function Tile({
 
       {/* y facing plane */}
       <Face
+        animation={animation}
+        bgColor={bgColor}
         color={
           isLimitBottom
             ? bgColor
             : colord(getColorFromZ(z, extraZPlaneOffset))
-                .mix(bgColor, 0.25)
+                .mix(bgColor, 0.2)
                 .toHex()
         }
         fade={fade}
+        floorHeight={floorHeight}
+        hasFade={hasFade}
         style={{
           opacity: showBottomPane ? 1 : 0,
           transform: `${translate3d} rotateX(90deg) scaleY(${
@@ -672,14 +711,18 @@ export function Tile({
 
       {/* x facing plane */}
       <Face
+        animation={animation}
+        bgColor={bgColor}
         color={
           isLimitRight
             ? bgColor
             : colord(getColorFromZ(z, extraZPlaneOffset))
-                .mix(bgColor, 0.66)
+                .mix(bgColor, 0.3)
                 .toHex()
         }
         fade={fade}
+        floorHeight={floorHeight}
+        hasFade={hasFade}
         style={{
           opacity: showRightPane ? 1 : 0,
           transform: `${translate3d} rotateY(90deg) scaleX(${

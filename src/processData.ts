@@ -124,7 +124,7 @@ function getEntry(
     return getEntry(x, y, z + 1, neighborZs, invalidPositions);
   }
 
-  return [x, y, z, sig, lDiff, uDiff, rDiff, dDiff, 1];
+  return [x, y, z, sig, lDiff, uDiff, rDiff, dDiff, 0];
 }
 
 export function processData(ground: number[][]): Terrain {

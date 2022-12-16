@@ -3,6 +3,7 @@ import { MemoizedTile } from './Tile';
 import { makeGetColorFromZ } from './colors';
 import { useEffect, useMemo, useState } from 'react';
 import { getVisibleTiles } from './getVisibleTiles';
+import { config, useTransition } from '@react-spring/web';
 
 export function LandScape({
   tileSize,
@@ -10,21 +11,23 @@ export function LandScape({
   colors,
   perimeter,
   pixelate,
+  fade,
 }: {
   tileSize: number;
   perimeter: number;
   terrainData: number[][];
   colors: string[];
   pixelate: boolean;
+  fade?: boolean;
 }) {
   const getColorFromZ = useMemo(() => makeGetColorFromZ(colors), [colors]);
   const [center, setCenter] = useState<[number, number]>([0, 0]);
 
   const tiles = useMemo(() => processData(terrainData), [terrainData]);
-  const visible = useMemo(
-    () => getVisibleTiles(tiles, center, perimeter),
-    [center, perimeter, tiles],
-  );
+  const visible = useMemo(() => {
+    const vis = getVisibleTiles(tiles, center, perimeter, Boolean(fade));
+    return Object.keys(vis).map((v) => vis[v]);
+  }, [center, perimeter, tiles, fade]);
 
   // use arrow keys to update center
   const handleKeyDown = (e: KeyboardEvent) => {
@@ -49,34 +52,60 @@ export function LandScape({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  const transitions = useTransition(visible, {
+    from: {
+      opacity: 0,
+    },
+    enter: {
+      opacity: 1,
+    },
+    leave: {
+      opacity: 0,
+    },
+    config: config.stiff,
+  });
+
+  const bg = 'rgba(0, 20, 190, 1)';
   return (
     <>
       <div
         style={{
           display: 'flex',
+          backgroundColor: bg,
           pointerEvents: 'none',
-          filter: pixelate ? 'url("#pixelate")' : 'none',
+          filter: pixelate ? 'url("#turb") url("#pixelate")' : 'none',
           alignItems: 'center',
           justifyContent: 'center',
           width: '100%',
           height: '100%',
           position: 'absolute',
           bottom: 0,
-          paddingTop: '15vh',
+          paddingTop: '40vh',
           /* if we want perspective, uncomment: */
-          // transformStyle: 'preserve-3d',
           transformOrigin: 'center',
         }}
       >
-        <div className="isometric">
-          {Object.keys(visible).map((k) => {
-            const [x, y, z, s, l, u, r, d, fade] = visible[k];
+        <div
+          style={{
+            position: 'absolute',
+            transition: 'transform 250ms',
+            transformStyle: 'preserve-3d',
+            transform: `rotateX(var(--base-x)) rotateZ(var(--base-z)) translateX(${
+              -center[0] * tileSize
+            }px) translateY(${-center[1] * tileSize}px)`,
+          }}
+        >
+          {transitions((style, [x, y, z, s, l, u, r, d, fadeVal]) => {
             return (
               <MemoizedTile
+                animation={style}
+                bgColor={bg}
+                border={false}
+                stepSize={0.33}
                 diffs={[l, u, r, d]}
-                fade={fade}
+                fade={fadeVal}
                 getColorFromZ={getColorFromZ}
-                key={k}
+                hasFade={Boolean(fade)}
                 signature={s}
                 tileSize={tileSize}
                 x={x}

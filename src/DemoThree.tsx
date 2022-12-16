@@ -59,15 +59,15 @@ import { LandScape } from './LandScape';
 
 const tiles = 120;
 const levels = 10;
-const baseTileSize = 80;
-const perimeter = 10;
+const baseTileSize = 50;
+const perimeter = 12;
 
 setIsoCssVars();
 
 const gen = () => generateExpandedGround(levels, undefined, tiles);
 const terrains = [] as number[][][];
 // pregenerate some terrain
-const count = 50;
+const count = 5;
 for (let i = 0; i < count; i++) {
   terrains.push(gen());
 }
@@ -180,6 +180,7 @@ export function DemoThree() {
         </div>
         <LandScape
           colors={colorsNatural}
+          fade={true}
           perimeter={perimeter}
           pixelate={pixelate}
           terrainData={terrains[active]}

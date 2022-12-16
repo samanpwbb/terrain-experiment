@@ -3,12 +3,6 @@
 @tailwind utilities;
 
 /* transforms */
-.isometric {
-  /* the first translateZ is to avoid clipping with the un-translated background */
-  transform: rotateX(var(--base-x)) rotateZ(var(--base-z));
-  transform-style: preserve-3d;
-}
-
 .unisometric {
   transform: rotateZ(var(--base-z-reverse)) scale(var(--scale));
   transform-style: preserve-3d;

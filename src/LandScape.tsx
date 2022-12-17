@@ -1,36 +1,48 @@
 import { processData } from './processData';
-import { MemoizedTile } from './Tile';
+import { Tile } from './Tile';
 import { makeGetColorFromZ } from './colors';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getVisibleTiles } from './getVisibleTiles';
-import { config, useTransition } from '@react-spring/web';
 
 export function LandScape({
   tileSize,
+  bufferSize = 1,
   terrainData,
   colors,
   perimeter,
   pixelate,
   fade,
+  bgColor,
 }: {
   tileSize: number;
+  bufferSize: number;
   perimeter: number;
   terrainData: number[][];
   colors: string[];
   pixelate: boolean;
   fade?: boolean;
+  bgColor: string;
 }) {
   const getColorFromZ = useMemo(() => makeGetColorFromZ(colors), [colors]);
   const [center, setCenter] = useState<[number, number]>([0, 0]);
 
   const tiles = useMemo(() => processData(terrainData), [terrainData]);
   const visible = useMemo(() => {
-    const vis = getVisibleTiles(tiles, center, perimeter, Boolean(fade));
-    return Object.keys(vis).map((v) => vis[v]);
+    const vis = getVisibleTiles(
+      tiles,
+      center,
+      perimeter,
+      Boolean(fade),
+      bufferSize,
+    );
+    return Object.keys(vis).map((v) => ({
+      key: v,
+      item: vis[v],
+    }));
   }, [center, perimeter, tiles, fade]);
 
   // use arrow keys to update center
-  const handleKeyDown = (e: KeyboardEvent) => {
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
     switch (e.key) {
       case 'ArrowUp':
         setCenter((c) => [c[0], c[1] - 1]);
@@ -45,33 +57,19 @@ export function LandScape({
         setCenter((c) => [c[0] + 1, c[1]]);
         break;
     }
-  };
+  }, []);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [handleKeyDown]);
 
-  const transitions = useTransition(visible, {
-    from: {
-      opacity: 0,
-    },
-    enter: {
-      opacity: 1,
-    },
-    leave: {
-      opacity: 0,
-    },
-    config: config.stiff,
-  });
-
-  const bg = 'rgba(0, 20, 190, 1)';
   return (
     <>
       <div
         style={{
           display: 'flex',
-          backgroundColor: bg,
+          backgroundColor: bgColor,
           pointerEvents: 'none',
           filter: pixelate ? 'url("#turb") url("#pixelate")' : 'none',
           alignItems: 'center',
@@ -80,7 +78,7 @@ export function LandScape({
           height: '100%',
           position: 'absolute',
           bottom: 0,
-          paddingTop: '40vh',
+          paddingTop: '25vh',
           /* if we want perspective, uncomment: */
           transformOrigin: 'center',
         }}
@@ -88,51 +86,43 @@ export function LandScape({
         <div
           style={{
             position: 'absolute',
-            transition: 'transform 250ms',
+            transition: 'transform 125ms',
             transformStyle: 'preserve-3d',
             transform: `rotateX(var(--base-x)) rotateZ(var(--base-z)) translateX(${
               -center[0] * tileSize
             }px) translateY(${-center[1] * tileSize}px)`,
           }}
         >
-          {transitions((style, [x, y, z, s, l, u, r, d, fadeVal]) => {
+          {visible.map((tileProps) => {
             return (
-              <MemoizedTile
-                animation={style}
-                bgColor={bg}
+              <Tile
+                bgColor={bgColor}
                 border={false}
-                stepSize={0.33}
-                diffs={[l, u, r, d]}
-                fade={fadeVal}
                 getColorFromZ={getColorFromZ}
                 hasFade={Boolean(fade)}
-                signature={s}
+                key={tileProps.key}
+                stepSize={0.25}
+                tileProps={tileProps.item}
                 tileSize={tileSize}
-                x={x}
-                y={y}
-                z={z}
               />
             );
           })}
         </div>
       </div>
-      <svg>
+      <svg display="none">
         <defs>
           <filter id="turb">
             <feTurbulence baseFrequency="0.15" numOctaves="3" />
             <feDisplacementMap in="SourceGraphic" scale="10" />
           </filter>
+          <filter id="pixelate">
+            <feFlood height="2" width="2" x="2" y="2" />
+            <feComposite height="6" width="6" />
+            <feTile result="a" />
+            <feComposite in="SourceGraphic" in2="a" operator="in" />
+            <feMorphology operator="dilate" radius="2" />
+          </filter>
         </defs>
-      </svg>
-
-      <svg>
-        <filter id="pixelate">
-          <feFlood height="2" width="2" x="2" y="2" />
-          <feComposite height="6" width="6" />
-          <feTile result="a" />
-          <feComposite in="SourceGraphic" in2="a" operator="in" />
-          <feMorphology operator="dilate" radius="2" />
-        </filter>
       </svg>
     </>
   );

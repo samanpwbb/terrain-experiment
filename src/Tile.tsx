@@ -2,7 +2,7 @@ import { BASE_SCALE, RADIAN_TO_ANGLE } from './perspective-utils';
 import { colord, extend } from 'colord';
 import mixPlugin from 'colord/plugins/mix';
 import { memo, CSSProperties, useCallback, ReactNode } from 'react';
-import { animated } from '@react-spring/web';
+import type { Tile as TileType } from './processData';
 
 extend([mixPlugin]);
 
@@ -359,10 +359,8 @@ function Face({
   bgColor,
   floorHeight,
   hasFade,
-  animation,
 }: {
   z: number;
-  animation: any;
   tileSize: number;
   style: CSSProperties;
   children?: ReactNode;
@@ -380,9 +378,10 @@ function Face({
     : `all ${100 + Math.abs(floorHeight + z) * 50}ms`;
 
   return (
-    <animated.div
+    <div
       className={`${border && 'tile-border'} absolute`}
       style={{
+        pointerEvents: 'none',
         height: `${tileSize}px`,
         width: `${tileSize}px`,
         transition,
@@ -391,15 +390,14 @@ function Face({
         display: 'flex',
         fontSize: 8,
         backgroundColor: finalColor,
-        border: border ? `3px solid rgba(0,0,0,0.2)` : null,
-        ...style,
+        border: border ? `3px solid rgba(0,0,0,0.2)` : undefined,
         boxShadow: hideHairline ? `0 0 0 1px ${finalColor}` : 'none',
         overflow: 'visible',
-        ...animation,
+        ...style,
       }}
     >
       {children}
-    </animated.div>
+    </div>
   );
 }
 
@@ -532,37 +530,29 @@ function getRampPaneBackground(
 }
 
 export function Tile({
-  x,
-  y,
-  z,
   tileSize,
-  signature,
-  diffs,
   getColorFromZ,
   hasFade,
-  fade,
-  animation,
   bgColor = 'rgb(51 65 85)',
   floorHeight = 0,
   stepSize = 0.25,
   border = false,
+  tileProps,
 }: {
   tileSize: number;
-  x: number;
-  y: number;
-  z: number;
-  signature: number;
-  fade: number;
   hasFade: boolean;
-  animation: any;
   border: boolean;
-  // [0, 1, 2, 3] = [left, up, right, down]
-  diffs: number[];
   getColorFromZ: (z: number, offset: number) => string;
   bgColor?: string;
   floorHeight?: number;
   stepSize?: number;
+  tileProps: TileType;
 }) {
+  const [x, y, z, signature, l, u, r, d, fade] = tileProps;
+
+  // [0, 1, 2, 3] = [left, up, right, down]
+  const diffs = [l, u, r, d];
+
   const zStep = BASE_SCALE * stepSize;
   const zBase = floorHeight + z * zStep;
   const zOffset = zBase * tileSize;
@@ -583,7 +573,6 @@ export function Tile({
     zStep,
     s: signature,
   });
-
   // Main function for positioning elements iin 3d space.
   // Every tile face transform starts with this.
   // need to multiply by 0.99 to hide hairline borders
@@ -618,7 +607,6 @@ export function Tile({
       {/* duplicate x and y panes to fill gaps created by  ramp panes */}
       {edges.map((rampEdgeData, i) => (
         <Face
-          animation={animation}
           bgColor={bgColor}
           color={getRampPaneBackground(
             rampEdgeData,
@@ -644,7 +632,6 @@ export function Tile({
 
       {/* z facing pane */}
       <Face
-        animation={animation}
         bgColor={bgColor}
         border={border}
         color={fill || getColorFromZ(z, transform ? 0.5 : 0)}
@@ -664,7 +651,6 @@ export function Tile({
 
       {/* duplicate z facing plane used by masked 1-up and 3-up triangles */}
       <Face
-        animation={animation}
         bgColor={bgColor}
         border={border}
         color={getColorFromZ(z, extraZPlaneOffset)}
@@ -686,7 +672,6 @@ export function Tile({
 
       {/* y facing plane */}
       <Face
-        animation={animation}
         bgColor={bgColor}
         color={
           isLimitBottom
@@ -711,7 +696,6 @@ export function Tile({
 
       {/* x facing plane */}
       <Face
-        animation={animation}
         bgColor={bgColor}
         color={
           isLimitRight

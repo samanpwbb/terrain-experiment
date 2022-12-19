@@ -78,7 +78,7 @@ export function LandScape({
           height: '100%',
           position: 'absolute',
           bottom: 0,
-          paddingTop: '25vh',
+          paddingTop: '30vh',
           /* if we want perspective, uncomment: */
           transformOrigin: 'center',
         }}

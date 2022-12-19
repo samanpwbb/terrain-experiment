@@ -31,7 +31,7 @@ export function getVisibleTiles(
           const fadeVal =
             Math.sqrt((i - raw_half) ** 2 + (j - raw_half) ** 2) /
             (half - buffer);
-          modified[TILE.FADE] = Math.min(1, fadeVal ** 2);
+          modified[TILE.FADE] = Math.min(1, fadeVal ** 3);
         }
 
         visibleTiles[key] = modified;

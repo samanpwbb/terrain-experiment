@@ -349,7 +349,6 @@ function Face({
   border,
   fade,
   bgColor,
-  allowTransition = true,
 }: {
   color: string;
   style: CSSProperties;
@@ -359,7 +358,7 @@ function Face({
   allowTransition?: boolean;
 }) {
   const finalColor = colord(color).mix(bgColor, fade).toHex();
-  const transition = `background-color ${allowTransition ? 125 : 0}ms linear`;
+  const transition = `background-color ${125}ms linear`;
 
   return (
     <div

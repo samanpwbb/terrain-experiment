@@ -10,7 +10,7 @@ export function getVisibleTiles(
   const visibleTiles = {} as Terrain;
   const [x, y] = center;
   const PerimeterWithBuffer = perimeter + buffer * 2;
-  const raw_half = perimeter / 2;
+  const raw_half = PerimeterWithBuffer / 2;
   const half = Math.round(raw_half);
 
   for (let i = 0; i <= PerimeterWithBuffer; i++) {
@@ -31,7 +31,7 @@ export function getVisibleTiles(
           const fadeVal =
             Math.sqrt((i - raw_half) ** 2 + (j - raw_half) ** 2) /
             (half - buffer);
-          modified[TILE.FADE] = Math.min(1, fadeVal ** 3);
+          modified[TILE.FADE] = Math.min(1, fadeVal ** 2);
         }
 
         visibleTiles[key] = modified;

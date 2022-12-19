@@ -11,20 +11,22 @@ import { useWindowSize } from './useWindowSize';
 import { LandScape } from './LandScape';
 
 /* next
- * - [ ] Performance optimize
- * - [x] rotate with mouse:
-     - left/right to rotate on z axis
-      - up/down to rotate on y axis
-   - [x] Pan to load more tiles.
- * - [ ] Release as a react component.
-   *
-   * Maybe:
-   * - [ ] Click to raise / shift+click to lower.
-   * - [ ] Water level overlay
-   * - [ ] Jitter the vertexes ?
-   *
-   *
-   * Done:
+* - [ ] Use full diagonal ramps, if there is a triangle,
+        and the diagonal tile is up 1.
+*
+* Maybe:
+* - [ ] Click to raise / shift+click to lower.
+* - [ ] Water level overlay
+* - [ ] Jitter the vertexes ?
+*
+*
+* Done:
+   * - [x] Performance optimize
+   * - [x] rotate with mouse:
+       - left/right to rotate on z axis
+        - up/down to rotate on y axis
+     - [x] Pan to load more tiles.
+   * - [ ] Release as a react component.
  * - [x] Allow more than 10 levels.
  * - [x] Generate from center rather that top left so we can expand in all directions.
  * - [x] Pass in data.
@@ -60,8 +62,8 @@ import { LandScape } from './LandScape';
 
 const tiles = 120;
 const levels = 10;
-const baseTileSize = 50;
-const perimeter = 15;
+const baseTileSize = 70;
+const perimeter = 11;
 
 setIsoCssVars();
 
@@ -149,7 +151,7 @@ export function DemoThree() {
         </div>
         <LandScape
           bgColor="rgba(0, 20, 140, 1)"
-          bufferSize={0}
+          bufferSize={1.5}
           colors={colorsNatural}
           fade={true}
           perimeter={perimeter}

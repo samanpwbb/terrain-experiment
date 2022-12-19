@@ -79,7 +79,7 @@ export function LandScape({
           height: '100%',
           position: 'absolute',
           bottom: 0,
-          paddingTop: '30vh',
+          paddingTop: '50vh',
           /* if we want perspective, uncomment: */
           transformOrigin: 'center',
         }}
@@ -99,7 +99,7 @@ export function LandScape({
               <MemoizedPositioner
                 floorHeight={0}
                 key={tileProps.key}
-                stepSize={0.25}
+                stepSize={0.3}
                 tileSize={tileSize}
                 x={tileProps.item[TILE.X]}
                 y={tileProps.item[TILE.Y]}
@@ -109,6 +109,7 @@ export function LandScape({
                   bgColor={bgColor}
                   border={false}
                   getColorFromZ={getColorFromZ}
+                  stepSize={0.3}
                   tileProps={tileProps.item}
                   tileSize={tileSize}
                 />

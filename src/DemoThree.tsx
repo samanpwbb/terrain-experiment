@@ -68,7 +68,7 @@ setIsoCssVars();
 const gen = () => generateExpandedGround(levels, undefined, tiles);
 const terrains = [] as number[][][];
 // pregenerate some terrain
-const count = 5;
+const count = 1;
 for (let i = 0; i < count; i++) {
   terrains.push(gen());
 }
@@ -91,7 +91,7 @@ export const colorsNatural = [
 ].reverse();
 
 export function DemoThree() {
-  const [active, setActive] = useState(0);
+  const [active] = useState(0);
   const x = useRef(BASE_X);
   const z = useRef(BASE_Z);
   const [pixelate, setPixelate] = useState(true);
@@ -128,38 +128,9 @@ export function DemoThree() {
         onPointerMove={updateCamera}
         onPointerUp={stopDragging}
       >
-        <div className="fixed bottom-5 left-5 z-10 select-none items-center justify-center rounded-lg p-2">
-          By{' '}
-          <a
-            className="underline decoration-slate-200 underline-offset-2	"
-            href="https://trashmoon.com/"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            Saman Bemel Benrud ↗
-          </a>
-        </div>
         <div className="fixed top-5 left-5 z-10 flex select-none items-center justify-center rounded-lg p-2">
           <div
-            className="mr-1 cursor-pointer rounded-md bg-black/25 px-2 py-1"
-            onClick={() => setActive((v) => (v > 0 ? v - 1 : count - 1))}
-          >
-            ←
-          </div>
-          <div
-            className="cursor-pointer	rounded-md bg-black/25 px-2 py-1"
-            onClick={() => setActive((v) => (v < count - 1 ? v + 1 : 0))}
-          >
-            →
-          </div>
-          <span className="ml-2 mr-2 w-8 border-r border-solid border-black pr-2">
-            {active}
-          </span>
-          <div className="ml-2 cursor-pointer py-1 text-gray-300">
-            Click and drag to rotate. Arrow keys move.
-          </div>
-          <div
-            className="ml-2	 cursor-pointer rounded-md bg-white bg-black/25 px-2 py-1"
+            className="ml-2	 cursor-pointer rounded-md bg-black/25 px-2 py-1"
             onClick={() => {
               updateBaseX(BASE_X);
               updateBaseZ(BASE_Z);
@@ -170,7 +141,7 @@ export function DemoThree() {
             Reset position
           </div>
           <div
-            className="w-30 ml-2 cursor-pointer	rounded-md bg-white bg-black/25 px-2 py-1"
+            className="w-30 ml-2 cursor-pointer	rounded-md bg-black/25 px-2 py-1"
             onClick={() => setPixelate((v) => !v)}
           >
             Pixelate: {pixelate ? 'ON' : 'OFF'}
@@ -178,7 +149,7 @@ export function DemoThree() {
         </div>
         <LandScape
           bgColor="rgba(0, 20, 140, 1)"
-          bufferSize={1}
+          bufferSize={0}
           colors={colorsNatural}
           fade={true}
           perimeter={perimeter}

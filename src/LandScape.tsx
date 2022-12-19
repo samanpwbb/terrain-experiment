@@ -1,8 +1,9 @@
-import { processData } from './processData';
-import { Tile } from './Tile';
+import { processData, TILE } from './processData';
+import { MemoizedTile } from './Tile';
 import { makeGetColorFromZ } from './colors';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getVisibleTiles } from './getVisibleTiles';
+import { MemoizedPositioner } from './Positioner';
 
 export function LandScape({
   tileSize,
@@ -39,7 +40,7 @@ export function LandScape({
       key: v,
       item: vis[v],
     }));
-  }, [center, perimeter, tiles, fade]);
+  }, [tiles, center, perimeter, fade, bufferSize]);
 
   // use arrow keys to update center
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -95,16 +96,23 @@ export function LandScape({
         >
           {visible.map((tileProps) => {
             return (
-              <Tile
-                bgColor={bgColor}
-                border={false}
-                getColorFromZ={getColorFromZ}
-                hasFade={Boolean(fade)}
+              <MemoizedPositioner
+                floorHeight={0}
                 key={tileProps.key}
                 stepSize={0.25}
-                tileProps={tileProps.item}
                 tileSize={tileSize}
-              />
+                x={tileProps.item[TILE.X]}
+                y={tileProps.item[TILE.Y]}
+                z={tileProps.item[TILE.Z]}
+              >
+                <MemoizedTile
+                  bgColor={bgColor}
+                  border={false}
+                  getColorFromZ={getColorFromZ}
+                  tileProps={tileProps.item}
+                  tileSize={tileSize}
+                />
+              </MemoizedPositioner>
             );
           })}
         </div>

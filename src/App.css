@@ -2,16 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
-/* transforms */
-.unisometric {
-  transform: rotateZ(var(--base-z-reverse)) scale(var(--scale));
-  transform-style: preserve-3d;
-}
-
 .filter {
   filter: url('#turb');
 }
 
 .pixelate {
   filter: url('#pixelate');
+}
+
+svg * {
+  transition: fill 125ms linear;
 }

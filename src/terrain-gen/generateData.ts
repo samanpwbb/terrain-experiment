@@ -1,23 +1,7 @@
 import { makeNoise2D } from 'fast-simplex-noise';
-
-function makeNumberGenerator(seed: number) {
-  const generate = () => {
-    const x = Math.sin(seed++) * 10000;
-    const val = x - Math.floor(x);
-    return val;
-  };
-  return generate;
-}
-const defaultGenerator = makeNumberGenerator(1);
-
-export { defaultGenerator, makeNumberGenerator };
-
-function smooth(curr: number, ...more: number[]) {
-  const vals = [curr, ...more].map((v) => (isNaN(v) ? curr : v)) as number[];
-  const avg = Math.floor(vals.reduce((a, b) => a + b, 0) / vals.length);
-  if (avg < 3) return 2;
-  return avg;
-}
+import { defaultGenerator } from './defaultGenerator';
+import { smooth } from './smooth';
+import { wiggle } from './wiggle';
 
 export function generateExpandedGround(
   levels = 10,
@@ -83,9 +67,4 @@ export function generateExpandedGround(
       );
     });
   });
-}
-
-function wiggle(v: number, g: () => number, mod = 2, max = 9) {
-  const nv = Math.min(max, Math.max(0, Math.floor(v + mod * (g() - 0.5))));
-  return nv;
 }

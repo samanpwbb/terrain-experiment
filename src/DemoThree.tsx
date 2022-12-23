@@ -1,5 +1,4 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { generateExpandedGround } from './generateData';
 import {
   setIsoCssVars,
   updateBaseX,
@@ -9,10 +8,14 @@ import {
 } from './perspective-utils';
 import { useWindowSize } from './useWindowSize';
 import { LandScape } from './LandScape';
+import { generateNaturalGround } from './terrain-gen/generateNaturalData';
 
 /* next
-* - [ ] Use full diagonal ramps, if there is a triangle,
+* - [x] Use full diagonal ramps, if there is a triangle,
         and the diagonal tile is up 1.
+* - [ ] (terrain gen) Fix the dry water beds.
+* - [ ] (terrain gen) Add some cliffs.
+
 *
 * Maybe:
 * - [ ] Click to raise / shift+click to lower.
@@ -60,14 +63,14 @@ import { LandScape } from './LandScape';
  * - [ ] Allow ramps to angle up to two tiles not just one.
  */
 
-const tiles = 120;
-const levels = 10;
+const mapSize = 120;
+const levels = 7;
 const baseTileSize = 70;
-const perimeter = 11;
+const perimeter = 12;
 
 setIsoCssVars();
 
-const gen = () => generateExpandedGround(levels, undefined, tiles);
+const gen = () => generateNaturalGround(levels, mapSize, 2);
 const terrains = [] as number[][][];
 // pregenerate some terrain
 const count = 1;

@@ -2,7 +2,7 @@ import { BASE_SCALE, RADIAN_TO_ANGLE } from './perspective-utils';
 import { colord, extend } from 'colord';
 import mixPlugin from 'colord/plugins/mix';
 import { memo, CSSProperties } from 'react';
-import type { Tile as TileType } from './processData';
+import { TILE, Tile as TileType } from './processData';
 
 extend([mixPlugin]);
 
@@ -19,19 +19,22 @@ const splitRamps = new Set([0b1010, 0b0101]);
 // 0b0010 = right
 // 0b0001 = bottom
 function getRamp({
-  s,
   tileSize,
   zStep,
+  tile,
 }: {
-  s: number;
   tileSize: number;
   zStep: number;
+  tile: TileType;
 }) {
+  const s = tile[TILE.SIGNATURE];
+
   const data = {
     // primary z plane
     transform: '',
-    // note:  some of the clipPaths are slightly larger than the tile to cover hairline
-    // gaps caused by browser rendering issues.
+    // note: some of the clipPaths are slightly larger than the tile to cover hairline
+    // gaps caused by browser rendering issues. We should use svgs instead but we
+    // can ignore the issue because of the pixel filter we're using.
     clipPath: '',
     anchor: '',
     fill: '',
@@ -41,6 +44,7 @@ function getRamp({
     extraZPlaneOffset: 0,
     extraZPlaneClipPath: '',
     extraZPlaneTransform: '',
+    extraZPlaneAnchor: '',
   };
 
   const zTile = zStep * tileSize;
@@ -263,6 +267,21 @@ function getRamp({
       // |/ .
       data.extraZPlaneClipPath = 'polygon(0 0, 100% 0, 0 100%)';
 
+      if (tile[TILE.LU_NEIGHBOR] === 2) {
+        // ./|
+        // / |
+        // \ |
+        // .\|
+        data.extraZPlaneClipPath = 'polygon(100% 0, 0 50%, 100% 100%)';
+        data.extraZPlaneAnchor = 'top right';
+        data.extraZPlaneOffset = 2;
+        data.extraZPlaneTransform = `
+        translateZ(${z}px)
+        rotateZ(${rotateZ}deg)
+        rotateY(${singleCornerAngle}deg)
+        scaleY(${SQ2}) scaleX(${lengthScale / 2})`;
+      }
+
       // |\.
       // | \
       // | /
@@ -283,6 +302,21 @@ function getRamp({
       // /  |
       // ----
       data.extraZPlaneClipPath = 'polygon(100% 0%, 100% 100%, 0% 100%)';
+
+      if (tile[TILE.RD_NEIGHBOR] === 2) {
+        // |\.
+        // | \
+        // | /
+        // |/.
+        data.extraZPlaneClipPath = 'polygon(0 0, 100% 50%, 0 100%)';
+        data.extraZPlaneAnchor = 'bottom left';
+        data.extraZPlaneOffset = 2;
+        data.extraZPlaneTransform = `
+        translateZ(${z}px)
+        rotateZ(${rotateZ}deg)
+        rotateY(-${singleCornerAngle}deg)
+        scaleY(${SQ2}) scaleX(${lengthScale / 2})`;
+      }
 
       // ./|
       // / |
@@ -305,6 +339,17 @@ function getRamp({
       // ----
       data.extraZPlaneClipPath = 'polygon(0 0%, 100% 100%, 0 100%)';
 
+      if (tile[TILE.LD_NEIGHBOR] === 2) {
+        data.extraZPlaneClipPath = 'polygon(0 0, 50% 100%, 100% 0)';
+        data.extraZPlaneAnchor = 'top left';
+        data.extraZPlaneOffset = 2;
+        data.extraZPlaneTransform = `
+      translateZ(${z}px)
+      rotateZ(${rotateZ}deg)
+      rotateX(${singleCornerAngle}deg)
+      scaleX(${SQ2}) scaleY(${lengthScale / 2})`;
+      }
+
       // ./\.
       // /  \
       // ----
@@ -324,6 +369,21 @@ function getRamp({
       //  \ |
       // . \|
       data.extraZPlaneClipPath = 'polygon(0% 0, 100% 0, 100% 100%)';
+
+      if (tile[TILE.RU_NEIGHBOR] === 2) {
+        // ./\.
+        // /  \
+        // ----
+        data.extraZPlaneClipPath = 'polygon(50% 0, 100% 100%, -0% 100%)';
+        data.extraZPlaneAnchor = 'bottom right';
+        data.extraZPlaneOffset = 2;
+        data.extraZPlaneTransform = `
+        translateZ(${zTile}px)
+        rotateZ(45deg)
+        rotateX(-${singleCornerAngle}deg)
+        scaleX(${SQ2})
+        scaleY(${lengthScale / 2})`;
+      }
 
       // ----
       // \  /
@@ -520,16 +580,16 @@ export function Tile({
   stepSize?: number;
   tileProps: TileType;
 }) {
-  const [, , z, signature, l, u, r, d, fade] = tileProps;
+  const [, , z, signature, l, u, r, d, lu, ru, rd, ld, fade] = tileProps;
 
-  // [0, 1, 2, 3] = [left, up, right, down]
-  const diffs = [l, u, r, d];
+  const diffs = [l, u, r, d, lu, ru, rd, ld];
   const zStep = BASE_SCALE * stepSize;
   const {
     extraZPlaneShow,
     extraZPlaneClipPath,
     extraZPlaneOffset,
     extraZPlaneTransform,
+    extraZPlaneAnchor,
     anchor,
     transform,
     clipPath,
@@ -537,7 +597,7 @@ export function Tile({
   } = getRamp({
     tileSize,
     zStep,
-    s: signature,
+    tile: tileProps,
   });
 
   const isLimitBottom = isNaN(diffs[3]);
@@ -602,8 +662,8 @@ export function Tile({
         fade={fade}
         style={{
           transform: `${extraZPlaneTransform}`,
+          transformOrigin: extraZPlaneAnchor || anchor,
           opacity: extraZPlaneShow ? 1 : 0,
-          transformOrigin: anchor,
           clipPath: extraZPlaneClipPath,
         }}
       />

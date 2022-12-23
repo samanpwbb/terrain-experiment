@@ -4,6 +4,8 @@ import { makeGetColorFromZ } from './colors';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getVisibleTiles } from './getVisibleTiles';
 import { MemoizedPositioner } from './Positioner';
+import { SvgFilters } from './SvgFilters';
+import { Entity } from './Entity';
 
 export function LandScape({
   tileSize,
@@ -95,6 +97,11 @@ export function LandScape({
           }}
         >
           {visible.map((tileProps) => {
+            const isBush =
+              tileProps.item[TILE.L_NEIGHBOR] ||
+              tileProps.item[TILE.U_NEIGHBOR] ||
+              tileProps.item[TILE.R_NEIGHBOR] ||
+              tileProps.item[TILE.D_NEIGHBOR];
             return (
               <MemoizedPositioner
                 floorHeight={0}
@@ -113,26 +120,21 @@ export function LandScape({
                   tileProps={tileProps.item}
                   tileSize={tileSize}
                 />
+                {/* {tileProps.item[TILE.SIGNATURE] === 0b0000 &&
+                  tileProps.item[TILE.Z] > 2 && (
+                    <Entity
+                      baseColor={getColorFromZ(tileProps.item[TILE.Z], 0)}
+                      bgColor={bgColor}
+                      fade={tileProps.item[TILE.FADE]}
+                      type={isBush ? 'bush' : 'tree'}
+                    />
+                  )} */}
               </MemoizedPositioner>
             );
           })}
         </div>
       </div>
-      <svg display="none">
-        <defs>
-          <filter id="turb">
-            <feTurbulence baseFrequency="0.15" numOctaves="3" />
-            <feDisplacementMap in="SourceGraphic" scale="10" />
-          </filter>
-          <filter id="pixelate">
-            <feFlood height="2" width="2" x="2" y="2" />
-            <feComposite height="6" width="6" />
-            <feTile result="a" />
-            <feComposite in="SourceGraphic" in2="a" operator="in" />
-            <feMorphology operator="dilate" radius="2" />
-          </filter>
-        </defs>
-      </svg>
+      <SvgFilters />
     </>
   );
 }

@@ -7,6 +7,10 @@ export type Tile = [
   uNeighbor: number,
   rNeighbor: number,
   dNeighbor: number,
+  luNeighbor: number,
+  ruNeighbor: number,
+  rdNeighbor: number,
+  ldNeighbor: number,
   fade: number,
 ];
 
@@ -19,7 +23,11 @@ export enum TILE {
   U_NEIGHBOR = 5,
   R_NEIGHBOR = 6,
   D_NEIGHBOR = 7,
-  FADE = 8,
+  LU_NEIGHBOR = 8,
+  RU_NEIGHBOR = 9,
+  RD_NEIGHBOR = 10,
+  LD_NEIGHBOR = 11,
+  FADE = 12,
 }
 
 export type Terrain = { [key: string]: Tile };
@@ -124,7 +132,21 @@ function getEntry(
     return getEntry(x, y, z + 1, neighborZs, invalidPositions);
   }
 
-  return [x, y, z, sig, lDiff, uDiff, rDiff, dDiff, 0];
+  return [
+    x,
+    y,
+    z,
+    sig,
+    lDiff,
+    uDiff,
+    rDiff,
+    dDiff,
+    luDiff,
+    ruDiff,
+    rdDiff,
+    ldDiff,
+    0,
+  ];
 }
 
 export function processData(ground: number[][]): Terrain {

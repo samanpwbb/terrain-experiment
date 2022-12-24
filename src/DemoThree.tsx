@@ -1,5 +1,4 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { generateExpandedGround } from './generateData';
 import {
   setIsoCssVars,
   updateBaseX,
@@ -9,23 +8,30 @@ import {
 } from './perspective-utils';
 import { useWindowSize } from './useWindowSize';
 import { LandScape } from './LandScape';
+import { generateNaturalGround } from './terrain-gen/generateNaturalData';
 
 /* next
- * - [x] rotate with mouse:
-     - left/right to rotate on z axis
-      - up/down to rotate on y axis
-   - [ ] Pan to load more tiles.
- * - [ ] Release as a react component.
- * - [ ] Allow more than 10 levels.
- * - [ ] Generate from center rather that top left so we can expand in all directions.
- *
- * Maybe:
- * - [ ] Click to raise / shift+click to lower.
- * - [ ] Water level overlay
- * - [ ] Jitter the vertexes ?
- *
- *
- * Done:
+* - [x] Use full diagonal ramps, if there is a triangle,
+        and the diagonal tile is up 1.
+* - [ ] (terrain gen) Fix the dry water beds.
+* - [ ] (terrain gen) Add some cliffs.
+
+*
+* Maybe:
+* - [ ] Click to raise / shift+click to lower.
+* - [ ] Water level overlay
+* - [ ] Jitter the vertexes ?
+*
+*
+* Done:
+   * - [x] Performance optimize
+   * - [x] rotate with mouse:
+       - left/right to rotate on z axis
+        - up/down to rotate on y axis
+     - [x] Pan to load more tiles.
+   * - [ ] Release as a react component.
+ * - [x] Allow more than 10 levels.
+ * - [x] Generate from center rather that top left so we can expand in all directions.
  * - [x] Pass in data.
  * - [x] Pass in color ramp.
  * - [x] Clean up code...
@@ -57,16 +63,17 @@ import { LandScape } from './LandScape';
  * - [ ] Allow ramps to angle up to two tiles not just one.
  */
 
-const tiles = 5;
-const levels = 10;
-const baseTileSize = 30;
+const mapSize = 120;
+const levels = 7;
+const baseTileSize = 70;
+const perimeter = 12;
 
 setIsoCssVars();
 
-const gen = () => generateExpandedGround(levels, undefined, tiles);
-const terrains = [] as string[];
+const gen = () => generateNaturalGround(levels, mapSize, 2);
+const terrains = [] as number[][][];
 // pregenerate some terrain
-const count = 50;
+const count = 1;
 for (let i = 0; i < count; i++) {
   terrains.push(gen());
 }
@@ -89,35 +96,32 @@ export const colorsNatural = [
 ].reverse();
 
 export function DemoThree() {
-  const [active, setActive] = useState(0);
+  const [active] = useState(0);
   const x = useRef(BASE_X);
   const z = useRef(BASE_Z);
-  const [pixelate, setPixelate] = useState(false);
+  const [pixelate, setPixelate] = useState(true);
 
-  const [isDragging, setIsDragging] = useState(false);
+  const isDragging = useRef(false);
 
-  const startDragging = () => setIsDragging(true);
-  const stopDragging = () => setIsDragging(false);
+  const startDragging = () => (isDragging.current = true);
+  const stopDragging = () => (isDragging.current = false);
 
   const windowSize = useWindowSize();
   const tileSize = Math.round(baseTileSize + windowSize[0] * 0.0125);
 
   // drag left/right to update baseX
   // drag up/down to update baseZ
-  const updateCamera = useCallback(
-    (e: React.PointerEvent) => {
-      if (!isDragging) return;
-      const newX = clamp(0, x.current - e.movementY * 0.25, 90);
-      updateBaseX(newX);
-      x.current = newX;
+  const updateCamera = useCallback((e: React.PointerEvent) => {
+    if (!isDragging.current) return;
+    const newX = clamp(0, x.current - e.movementY * 0.25, 90);
+    updateBaseX(newX);
+    x.current = newX;
 
-      const newZ = clamp(0, z.current - e.movementX * 0.25, 90);
-      updateBaseZ(newZ);
-      z.current = newZ;
-      e.preventDefault();
-    },
-    [isDragging],
-  );
+    const newZ = clamp(0, z.current - e.movementX * 0.25, 90);
+    updateBaseZ(newZ);
+    z.current = newZ;
+    e.preventDefault();
+  }, []);
 
   if (windowSize[0] === 0) return null;
 
@@ -129,38 +133,9 @@ export function DemoThree() {
         onPointerMove={updateCamera}
         onPointerUp={stopDragging}
       >
-        <div className="fixed bottom-5 left-5 z-10 select-none items-center justify-center rounded-lg bg-slate-500 p-2">
-          By{' '}
-          <a
-            className="underline decoration-slate-200 underline-offset-2	"
-            href="https://trashmoon.com/"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            Saman Bemel Benrud ↗
-          </a>
-        </div>
-        <div className="fixed top-5 left-5 z-10 flex select-none items-center justify-center rounded-lg bg-slate-500 p-2">
+        <div className="fixed top-5 left-5 z-10 flex select-none items-center justify-center rounded-lg p-2">
           <div
-            className="mr-1 cursor-pointer rounded-md bg-white bg-slate-600 px-2 py-1"
-            onClick={() => setActive((v) => (v > 0 ? v - 1 : count - 1))}
-          >
-            ←
-          </div>
-          <div
-            className="cursor-pointer	rounded-md bg-white bg-slate-600 px-2 py-1"
-            onClick={() => setActive((v) => (v < count - 1 ? v + 1 : 0))}
-          >
-            →
-          </div>
-          <span className="ml-2 mr-2 w-8 border-r border-solid border-black pr-2">
-            {active}
-          </span>
-          <div className="ml-2 cursor-pointer py-1 text-gray-300">
-            Click and drag to rotate.
-          </div>
-          <div
-            className="ml-2	 cursor-pointer rounded-md bg-white bg-slate-600 px-2 py-1"
+            className="ml-2	 cursor-pointer rounded-md bg-black/25 px-2 py-1"
             onClick={() => {
               updateBaseX(BASE_X);
               updateBaseZ(BASE_Z);
@@ -171,14 +146,18 @@ export function DemoThree() {
             Reset position
           </div>
           <div
-            className="w-30 ml-2 cursor-pointer	rounded-md bg-white bg-slate-600 px-2 py-1"
+            className="w-30 ml-2 cursor-pointer	rounded-md bg-black/25 px-2 py-1"
             onClick={() => setPixelate((v) => !v)}
           >
             Pixelate: {pixelate ? 'ON' : 'OFF'}
           </div>
         </div>
         <LandScape
+          bgColor="rgba(0, 20, 140, 1)"
+          bufferSize={1.5}
           colors={colorsNatural}
+          fade={true}
+          perimeter={perimeter}
           pixelate={pixelate}
           terrainData={terrains[active]}
           tileSize={tileSize}

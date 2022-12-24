@@ -1,5 +1,8 @@
 import { test, expect } from 'vitest';
-import { generateExpandedGround, groundToData } from './generateData';
+import {
+  generateExpandedGround,
+  groundToData,
+} from './terrain-gen/generateData';
 
 test('ground', () => {
   const ground = generateExpandedGround(undefined, undefined, 3);

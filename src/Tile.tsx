@@ -1,12 +1,10 @@
 import { BASE_SCALE, RADIAN_TO_ANGLE } from './perspective-utils';
 import { colord, extend } from 'colord';
 import mixPlugin from 'colord/plugins/mix';
-import { memo, CSSProperties, useCallback, ReactNode } from 'react';
-extend([mixPlugin]);
+import { memo, CSSProperties } from 'react';
+import { TILE, Tile as TileType } from './processData';
 
-const bgColor = '#1E293B';
-const floorHeight = 0;
-const stepSize = 0.25;
+extend([mixPlugin]);
 
 const SQ2 = 1.41421356237;
 
@@ -21,32 +19,32 @@ const splitRamps = new Set([0b1010, 0b0101]);
 // 0b0010 = right
 // 0b0001 = bottom
 function getRamp({
-  s,
   tileSize,
   zStep,
+  tile,
 }: {
-  s: number;
   tileSize: number;
   zStep: number;
+  tile: TileType;
 }) {
+  const s = tile[TILE.SIGNATURE];
+
   const data = {
     // primary z plane
     transform: '',
-    // note:  some of the clipPaths are slightly larger than the tile to cover hairline
-    // gaps caused by browser rendering issues.
+    // note: some of the clipPaths are slightly larger than the tile to cover hairline
+    // gaps caused by browser rendering issues. We should use svgs instead but we
+    // can ignore the issue because of the pixel filter we're using.
     clipPath: '',
     anchor: '',
     fill: '',
-
-    // hack that we only need to apply to the split ramps to hide the hairline gap
-    // between both planes
-    hideHairline: false,
 
     // secondary z plane, used for ramps that use half a tile.
     extraZPlaneShow: false,
     extraZPlaneOffset: 0,
     extraZPlaneClipPath: '',
     extraZPlaneTransform: '',
+    extraZPlaneAnchor: '',
   };
 
   const zTile = zStep * tileSize;
@@ -68,7 +66,6 @@ function getRamp({
 
     data.extraZPlaneShow = true;
     data.extraZPlaneOffset = 0.5;
-    data.hideHairline = true;
 
     // bottom
     if (s === 0b1010) {
@@ -89,9 +86,9 @@ function getRamp({
       // / |
       // \ |
       // .\|
-      data.extraZPlaneClipPath = 'polygon(0 50%, 102.5% -5%, 102.5% 105%)';
+      data.extraZPlaneClipPath = 'polygon(0 50%, 100% 0%, 100% 100%)';
       data.extraZPlaneTransform = `
-      translateZ(${zTile / 2}px)
+      translateZ(${zTile}px)
       rotateZ(45deg)
       rotateY(-${singleCornerAngle}deg)
       scaleY(${SQ2})
@@ -103,7 +100,7 @@ function getRamp({
       // ./\.
       // /  \
       // ----
-      data.clipPath = 'polygon(50% 0, 102.5% 105%, -2.5% 105%)';
+      data.clipPath = 'polygon(50% 0, 100% 100%, -0% 100%)';
       data.anchor = 'bottom right';
       data.transform = `
       translateZ(${zTile}px)
@@ -117,7 +114,7 @@ function getRamp({
       // .\/.
       data.extraZPlaneClipPath = 'polygon(0 0, 50% 100%, 100% 0)';
       data.extraZPlaneTransform = `
-      translateZ(${zTile / 2}px)
+      translateZ(${zTile}px)
       rotateZ(45deg)
       rotateX(-${singleCornerAngle}deg)
       scaleX(${SQ2})
@@ -143,7 +140,7 @@ function getRamp({
       //  / |
       // /  |
       // ----
-      data.extraZPlaneClipPath = 'polygon(100% -1%, 100% 100%, -1% 100%)';
+      data.extraZPlaneClipPath = 'polygon(100% -0%, 100% 100%, -0% 100%)';
 
       // ./|
       // / |
@@ -164,7 +161,7 @@ function getRamp({
       // |  /
       // | /
       // |/ .
-      data.extraZPlaneClipPath = 'polygon(0 0, 102% 0, 0 102%)';
+      data.extraZPlaneClipPath = 'polygon(0 0, 100% 0, 0 100%)';
 
       // |\.
       // | \
@@ -185,7 +182,7 @@ function getRamp({
       // \  |
       //  \ |
       // . \|
-      data.extraZPlaneClipPath = 'polygon(-2% 0, 100% 0, 100% 102%)';
+      data.extraZPlaneClipPath = 'polygon(-0% 0, 100% 0, 100% 100%)';
 
       // ----
       // \  /
@@ -205,7 +202,7 @@ function getRamp({
       // | \
       // |  \
       // ----
-      data.extraZPlaneClipPath = 'polygon(0 -2%, 102% 100%, 0 100%)';
+      data.extraZPlaneClipPath = 'polygon(0 0%, 100% 100%, 0 100%)';
 
       // ./\.
       // /  \
@@ -260,6 +257,7 @@ function getRamp({
 
     data.extraZPlaneShow = true;
     data.extraZPlaneOffset = 1;
+    data.extraZPlaneTransform = `translateZ(${z}px)`;
 
     // bottom
     if (s === 0b1110) {
@@ -267,7 +265,22 @@ function getRamp({
       // |  /
       // | /
       // |/ .
-      data.extraZPlaneClipPath = 'polygon(0 0, 102% 0, 0 102%)';
+      data.extraZPlaneClipPath = 'polygon(0 0, 100% 0, 0 100%)';
+
+      if (tile[TILE.LU_NEIGHBOR] === 2) {
+        // ./|
+        // / |
+        // \ |
+        // .\|
+        data.extraZPlaneClipPath = 'polygon(100% 0, 0 50%, 100% 100%)';
+        data.extraZPlaneAnchor = 'top right';
+        data.extraZPlaneOffset = 2;
+        data.extraZPlaneTransform = `
+        translateZ(${z}px)
+        rotateZ(${rotateZ}deg)
+        rotateY(${singleCornerAngle}deg)
+        scaleY(${SQ2}) scaleX(${lengthScale / 2})`;
+      }
 
       // |\.
       // | \
@@ -288,7 +301,22 @@ function getRamp({
       //  / |
       // /  |
       // ----
-      data.extraZPlaneClipPath = 'polygon(100% -2%, 100% 100%, -2% 100%)';
+      data.extraZPlaneClipPath = 'polygon(100% 0%, 100% 100%, 0% 100%)';
+
+      if (tile[TILE.RD_NEIGHBOR] === 2) {
+        // |\.
+        // | \
+        // | /
+        // |/.
+        data.extraZPlaneClipPath = 'polygon(0 0, 100% 50%, 0 100%)';
+        data.extraZPlaneAnchor = 'bottom left';
+        data.extraZPlaneOffset = 2;
+        data.extraZPlaneTransform = `
+        translateZ(${z}px)
+        rotateZ(${rotateZ}deg)
+        rotateY(-${singleCornerAngle}deg)
+        scaleY(${SQ2}) scaleX(${lengthScale / 2})`;
+      }
 
       // ./|
       // / |
@@ -309,7 +337,18 @@ function getRamp({
       // | \
       // |  \
       // ----
-      data.extraZPlaneClipPath = 'polygon(0 -2%, 102% 100%, 0 100%)';
+      data.extraZPlaneClipPath = 'polygon(0 0%, 100% 100%, 0 100%)';
+
+      if (tile[TILE.LD_NEIGHBOR] === 2) {
+        data.extraZPlaneClipPath = 'polygon(0 0, 50% 100%, 100% 0)';
+        data.extraZPlaneAnchor = 'top left';
+        data.extraZPlaneOffset = 2;
+        data.extraZPlaneTransform = `
+      translateZ(${z}px)
+      rotateZ(${rotateZ}deg)
+      rotateX(${singleCornerAngle}deg)
+      scaleX(${SQ2}) scaleY(${lengthScale / 2})`;
+      }
 
       // ./\.
       // /  \
@@ -329,7 +368,22 @@ function getRamp({
       // \  |
       //  \ |
       // . \|
-      data.extraZPlaneClipPath = 'polygon(-2% 0, 100% 0, 100% 102%)';
+      data.extraZPlaneClipPath = 'polygon(0% 0, 100% 0, 100% 100%)';
+
+      if (tile[TILE.RU_NEIGHBOR] === 2) {
+        // ./\.
+        // /  \
+        // ----
+        data.extraZPlaneClipPath = 'polygon(50% 0, 100% 100%, -0% 100%)';
+        data.extraZPlaneAnchor = 'bottom right';
+        data.extraZPlaneOffset = 2;
+        data.extraZPlaneTransform = `
+        translateZ(${zTile}px)
+        rotateZ(45deg)
+        rotateX(-${singleCornerAngle}deg)
+        scaleX(${SQ2})
+        scaleY(${lengthScale / 2})`;
+      }
 
       // ----
       // \  /
@@ -350,44 +404,36 @@ function getRamp({
 }
 
 function Face({
-  z,
   color,
-  tileSize,
   style,
-  children,
   border,
-  hideHairline,
+  fade,
+  bgColor,
 }: {
-  z: number;
-  tileSize: number;
-  style: CSSProperties;
-  children?: ReactNode;
   color: string;
+  style: CSSProperties;
   border?: boolean;
-  hideHairline?: boolean;
+  fade: number;
+  bgColor: string;
+  allowTransition?: boolean;
 }) {
+  const finalColor = colord(color).mix(bgColor, fade).toHex();
+  const transition = `background-color ${125}ms linear`;
+
   return (
     <div
-      className={`${border && 'tile-border'} absolute`}
+      className={`absolute`}
       style={{
-        height: `${tileSize}px`,
-        width: `${tileSize}px`,
-        transition: `all ${
-          100 + Math.abs(floorHeight + z) * 50
-        }ms, clip-path 0ms`,
-        alignItems: 'center',
-        justifyContent: 'center',
-        display: 'flex',
-        fontSize: 8,
-        backgroundColor: color,
-        // border: `1px solid rgba(0,0,0,0.2)`,
-        ...style,
-        boxShadow: hideHairline ? `0 0 0 1px ${color}` : 'none',
+        pointerEvents: 'none',
+        height: `100%`,
+        width: `100%`,
+        transition,
+        backgroundColor: finalColor,
+        border: border ? `3px solid rgba(0,0,0,0.2)` : undefined,
         overflow: 'visible',
+        ...style,
       }}
-    >
-      {children}
-    </div>
+    />
   );
 }
 
@@ -412,6 +458,7 @@ function getRampEdgeData(
   scale: number,
   isLimitBottom: boolean,
   isLimitRight: boolean,
+  bgColor: string,
 ): [RampEdgeData | null, RampEdgeData | null] {
   const result = [null, null] as [RampEdgeData | null, RampEdgeData | null];
 
@@ -497,6 +544,7 @@ function getRampPaneBackground(
   z: number,
   getColorFromZ: (z: number, offset: number) => string,
   tint: 'bottom' | 'right' | null,
+  bgColor: string,
 ) {
   if (!rampEdgeData) return '';
 
@@ -504,13 +552,13 @@ function getRampPaneBackground(
 
   if (tint === 'bottom') {
     return colord(getColorFromZ(z, rampEdgeData.zMod))
-      .mix(bgColor, 0.25)
+      .mix(bgColor, 0.2)
       .toHex();
   }
 
   if (tint === 'right') {
     return colord(getColorFromZ(z, rampEdgeData?.zMod))
-      .mix(bgColor, 0.66)
+      .mix(bgColor, 0.3)
       .toHex();
   }
 
@@ -518,57 +566,39 @@ function getRampPaneBackground(
 }
 
 export function Tile({
-  x,
-  y,
-  z,
-  tileSize,
-  signature,
-  diffs,
+  bgColor = 'rgb(51 65 85)',
+  border = false,
   getColorFromZ,
+  tileSize,
+  stepSize = 0.25,
+  tileProps,
 }: {
   tileSize: number;
-  x: number;
-  y: number;
-  z: number;
-  signature: number;
-  // [0, 1, 2, 3] = [left, up, right, down]
-  diffs: number[];
+  border: boolean;
   getColorFromZ: (z: number, offset: number) => string;
+  bgColor?: string;
+  stepSize?: number;
+  tileProps: TileType;
 }) {
+  const [, , z, signature, l, u, r, d, lu, ru, rd, ld, fade] = tileProps;
+
+  const diffs = [l, u, r, d, lu, ru, rd, ld];
   const zStep = BASE_SCALE * stepSize;
-  const zBase = floorHeight + z * zStep;
-  const zOffset = zBase * tileSize;
-  const xOffset = x * tileSize;
-  const yOffset = y * tileSize;
   const {
     extraZPlaneShow,
     extraZPlaneClipPath,
     extraZPlaneOffset,
     extraZPlaneTransform,
+    extraZPlaneAnchor,
     anchor,
     transform,
     clipPath,
     fill,
-    hideHairline,
   } = getRamp({
     tileSize,
     zStep,
-    s: signature,
+    tile: tileProps,
   });
-
-  // Main function for positioning elements iin 3d space.
-  // Every tile face transform starts with this.
-  // need to multiply by 0.99 to hide hairline borders
-  const toTranslate3d = useCallback(
-    (offset = 0) => `translate3d(
-    ${xOffset * 0.99}px,
-    ${yOffset * 0.99}px,
-    ${zOffset + offset * (zStep * tileSize)}px
-  )`,
-    [tileSize, xOffset, yOffset, zOffset, zStep],
-  );
-
-  const translate3d = toTranslate3d();
 
   const isLimitBottom = isNaN(diffs[3]);
   const isLimitRight = isNaN(diffs[2]);
@@ -576,13 +606,13 @@ export function Tile({
   const showRightPane = diffs[2] < -1 || isLimitRight;
   const sideIdxBottom = isLimitBottom ? z : -diffs[3];
   const sideIdxRight = isLimitRight ? z : -diffs[2];
-
   const edges = getRampEdgeData(
     signature,
     diffs,
     zStep,
     isLimitBottom,
     isLimitRight,
+    bgColor,
   );
 
   return (
@@ -590,94 +620,92 @@ export function Tile({
       {/* duplicate x and y panes to fill gaps created by  ramp panes */}
       {edges.map((rampEdgeData, i) => (
         <Face
+          allowTransition={false}
+          bgColor={bgColor}
           color={getRampPaneBackground(
             rampEdgeData,
             z,
             getColorFromZ,
             rampEdgeData?.anchor as 'bottom' | 'right',
+            bgColor,
           )}
+          fade={fade}
           key={i}
           style={{
             opacity: rampEdgeData ? 1 : 0,
-            transform: `${translate3d} ${rampEdgeData?.transform}`,
+            transform: `${rampEdgeData?.transform}`,
             transformOrigin: rampEdgeData?.anchor,
             clipPath: rampEdgeData?.clip,
           }}
-          tileSize={tileSize}
-          z={z}
         />
       ))}
 
       {/* z facing pane */}
       <Face
-        border={true}
+        bgColor={bgColor}
+        border={border}
         color={fill || getColorFromZ(z, transform ? 0.5 : 0)}
-        hideHairline={hideHairline}
+        fade={fade}
         style={{
-          transform: `${translate3d} ${transform}`,
+          transform: `${transform}`,
           clipPath,
           transformOrigin: anchor,
           overflow: 'visible',
         }}
-        tileSize={tileSize}
-        z={z}
       />
 
       {/* duplicate z facing plane used by masked 1-up and 3-up triangles */}
       <Face
-        border={true}
+        bgColor={bgColor}
+        border={border}
         color={getColorFromZ(z, extraZPlaneOffset)}
-        hideHairline={hideHairline}
+        fade={fade}
         style={{
-          transform: `${toTranslate3d(
-            extraZPlaneOffset,
-          )} ${extraZPlaneTransform}`,
+          transform: `${extraZPlaneTransform}`,
+          transformOrigin: extraZPlaneAnchor || anchor,
           opacity: extraZPlaneShow ? 1 : 0,
-          transformOrigin: anchor,
           clipPath: extraZPlaneClipPath,
         }}
-        tileSize={tileSize}
-        z={z}
       />
 
       {/* y facing plane */}
       <Face
+        allowTransition={false}
+        bgColor={bgColor}
         color={
           isLimitBottom
             ? bgColor
             : colord(getColorFromZ(z, extraZPlaneOffset))
-                .mix(bgColor, 0.25)
+                .mix(bgColor, 0.2)
                 .toHex()
         }
+        fade={fade}
         style={{
           opacity: showBottomPane ? 1 : 0,
-          transform: `${translate3d} rotateX(90deg) scaleY(${
-            sideIdxBottom * zStep
-          })`,
+          transform: `rotateX(90deg) scaleY(${sideIdxBottom * zStep})`,
           transformOrigin: 'bottom',
         }}
-        tileSize={tileSize}
-        z={z}
       />
 
       {/* x facing plane */}
       <Face
+        allowTransition={false}
+        bgColor={bgColor}
         color={
           isLimitRight
             ? bgColor
             : colord(getColorFromZ(z, extraZPlaneOffset))
-                .mix(bgColor, 0.66)
+                .mix(bgColor, 0.3)
                 .toHex()
         }
+        fade={fade}
         style={{
           opacity: showRightPane ? 1 : 0,
-          transform: `${translate3d} rotateY(90deg) scaleX(${
+          transform: `rotateY(90deg) scaleX(${
             sideIdxRight * zStep
           }) translateX(100%)`,
           transformOrigin: 'right',
         }}
-        tileSize={tileSize}
-        z={z}
       />
     </>
   );

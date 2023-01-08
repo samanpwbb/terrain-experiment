@@ -12,6 +12,9 @@ export type Tile = [
   rdNeighbor: number,
   ldNeighbor: number,
   fade: number,
+  vegetation?: 'weed' | 'bush' | 'tree',
+  vegetationRotation?: number,
+  vegetationScale?: number,
 ];
 
 export enum TILE {
@@ -28,6 +31,9 @@ export enum TILE {
   RD_NEIGHBOR = 10,
   LD_NEIGHBOR = 11,
   FADE = 12,
+  VEGETATION = 13,
+  VEGETATION_ROTATION = 14,
+  VEGETATION_SCALE = 15,
 }
 
 export type Terrain = { [key: string]: Tile };

@@ -97,11 +97,6 @@ export function LandScape({
           }}
         >
           {visible.map((tileProps) => {
-            const isBush =
-              tileProps.item[TILE.L_NEIGHBOR] ||
-              tileProps.item[TILE.U_NEIGHBOR] ||
-              tileProps.item[TILE.R_NEIGHBOR] ||
-              tileProps.item[TILE.D_NEIGHBOR];
             return (
               <MemoizedPositioner
                 floorHeight={0}
@@ -120,15 +115,16 @@ export function LandScape({
                   tileProps={tileProps.item}
                   tileSize={tileSize}
                 />
-                {/* {tileProps.item[TILE.SIGNATURE] === 0b0000 &&
-                  tileProps.item[TILE.Z] > 2 && (
-                    <Entity
-                      baseColor={getColorFromZ(tileProps.item[TILE.Z], 0)}
-                      bgColor={bgColor}
-                      fade={tileProps.item[TILE.FADE]}
-                      type={isBush ? 'bush' : 'tree'}
-                    />
-                  )} */}
+                {tileProps.item[TILE.VEGETATION] && (
+                  <Entity
+                    baseColor={getColorFromZ(tileProps.item[TILE.Z], 0)}
+                    bgColor={bgColor}
+                    fade={tileProps.item[TILE.FADE]}
+                    rotateOffset={tileProps.item[TILE.VEGETATION_ROTATION] || 0}
+                    scale={tileProps.item[TILE.VEGETATION_SCALE] || 1}
+                    type={tileProps.item[TILE.VEGETATION]}
+                  />
+                )}
               </MemoizedPositioner>
             );
           })}

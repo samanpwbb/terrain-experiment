@@ -3,6 +3,25 @@ import mixPlugin from 'colord/plugins/mix';
 import { useMemo } from 'react';
 extend([mixPlugin]);
 
+function Weed({ rotate, fill }: { rotate: boolean; fill: string }) {
+  return (
+    <svg
+      className="tree"
+      fill="none"
+      height="100%"
+      style={{
+        position: 'absolute',
+        transform: rotate ? 'rotateY(90deg)' : 'rotateX(0deg)',
+      }}
+      viewBox="0 0 100 100"
+      width="100%"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <circle cx="50" cy="80" fill={`${fill}`} r="20" />
+    </svg>
+  );
+}
+
 function Bush({ rotate, fill }: { rotate: boolean; fill: string }) {
   return (
     <svg
@@ -52,8 +71,12 @@ export function Entity({
   fade,
   bgColor,
   baseColor,
+  rotateOffset,
+  scale,
 }: {
-  type: 'bush' | 'tree';
+  type: 'bush' | 'tree' | 'weed';
+  rotateOffset: number;
+  scale: number;
   bgColor: string;
   baseColor: string;
   fade: number;
@@ -61,15 +84,22 @@ export function Entity({
   const fill = useMemo(
     () =>
       colord(baseColor)
-        .darken(0.1)
-        .rotate(-40)
-        .desaturate(0.2)
+        .darken(0.15)
+        .desaturate(0.3)
+        .rotate(25)
         .mix(bgColor, fade)
         .toHex(),
     [baseColor, bgColor, fade],
   );
 
-  const Type = type === 'bush' ? Bush : Tree;
+  let Type = Tree;
+  if (type === 'bush') {
+    Type = Bush;
+  }
+  if (type === 'weed') {
+    Type = Weed;
+  }
+
   return (
     <div
       style={{
@@ -82,7 +112,7 @@ export function Entity({
         width: '100%',
         height: '100%',
         transformOrigin: 'bottom',
-        transform: 'translateY(-50%) rotateX(-90deg)',
+        transform: `translateY(-50%) rotateX(-90deg) scale(${scale}) rotateY(${rotateOffset}deg)`,
       }}
     >
       <Type fill={fill} rotate={false} />

@@ -1,6 +1,6 @@
 import { processData, TILE } from './processData';
 import { MemoizedTile } from './Tile';
-import { makeGetColorFromZ } from './colors';
+import { makeGetColorFromZ } from './makeGetColorFromZ';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getVisibleTiles } from './getVisibleTiles';
 import { MemoizedPositioner } from './Positioner';

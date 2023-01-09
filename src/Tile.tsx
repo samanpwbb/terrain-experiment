@@ -32,9 +32,6 @@ function getRamp({
   const data = {
     // primary z plane
     transform: '',
-    // note: some of the clipPaths are slightly larger than the tile to cover hairline
-    // gaps caused by browser rendering issues. We should use svgs instead but we
-    // can ignore the issue because of the pixel filter we're using.
     clipPath: '',
     anchor: '',
     fill: '',

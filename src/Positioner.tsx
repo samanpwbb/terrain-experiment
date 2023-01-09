@@ -26,7 +26,6 @@ export function Positioner({
 
   // Main function for positioning elements iin 3d space.
   // Every tile face transform starts with this.
-  // need to multiply by 0.99 to hide hairline borders
   const translate3d = `translate3d(
     ${xOffset}px,
     ${yOffset}px,

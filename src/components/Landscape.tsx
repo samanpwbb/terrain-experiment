@@ -1,13 +1,13 @@
-import { processData, TILE } from './processData';
-import { MemoizedTile } from './Tile';
-import { makeGetColorFromZ } from './makeGetColorFromZ';
+import { processData, TILE } from '../utils/processData';
+import { Tile } from './Tile';
+import { makeGetColorFromZ } from '../utils/makeGetColorFromZ';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { getVisibleTiles } from './getVisibleTiles';
-import { MemoizedPositioner } from './Positioner';
+import { getVisibleTiles } from '../utils/getVisibleTiles';
+import { Positioner } from './Positioner';
 import { SvgFilters } from './SvgFilters';
-import { Entity } from './Entity';
+import { Decoration } from './Decorations';
 
-export function LandScape({
+export function Landscape({
   tileSize,
   bufferSize = 1,
   terrainData,
@@ -28,6 +28,7 @@ export function LandScape({
 }) {
   const getColorFromZ = useMemo(() => makeGetColorFromZ(colors), [colors]);
   const [center, setCenter] = useState<[number, number]>([0, 0]);
+  const [stepSize] = useState(0.3);
 
   const tiles = useMemo(() => processData(terrainData), [terrainData]);
   const visible = useMemo(() => {
@@ -74,7 +75,7 @@ export function LandScape({
           display: 'flex',
           backgroundColor: bgColor,
           pointerEvents: 'none',
-          filter: pixelate ? 'url("#turb") url("#pixelate")' : 'none',
+          filter: pixelate ? 'url("#pixelate")' : 'none',
           alignItems: 'center',
           justifyContent: 'center',
           width: '100%',
@@ -82,7 +83,6 @@ export function LandScape({
           position: 'absolute',
           bottom: 0,
           paddingTop: '50vh',
-          /* if we want perspective, uncomment: */
           transformOrigin: 'center',
         }}
       >
@@ -98,25 +98,24 @@ export function LandScape({
         >
           {visible.map((tileProps) => {
             return (
-              <MemoizedPositioner
+              <Positioner
                 floorHeight={0}
                 key={tileProps.key}
-                stepSize={0.3}
+                stepSize={stepSize}
                 tileSize={tileSize}
                 x={tileProps.item[TILE.X]}
                 y={tileProps.item[TILE.Y]}
                 z={tileProps.item[TILE.Z]}
               >
-                <MemoizedTile
+                <Tile
                   bgColor={bgColor}
-                  border={false}
                   getColorFromZ={getColorFromZ}
-                  stepSize={0.3}
+                  stepSize={stepSize}
                   tileProps={tileProps.item}
                   tileSize={tileSize}
                 />
                 {tileProps.item[TILE.VEGETATION] && (
-                  <Entity
+                  <Decoration
                     baseColor={getColorFromZ(tileProps.item[TILE.Z], 0)}
                     bgColor={bgColor}
                     fade={tileProps.item[TILE.FADE]}
@@ -125,7 +124,7 @@ export function LandScape({
                     type={tileProps.item[TILE.VEGETATION]}
                   />
                 )}
-              </MemoizedPositioner>
+              </Positioner>
             );
           })}
         </div>

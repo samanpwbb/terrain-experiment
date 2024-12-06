@@ -1,12 +1,11 @@
-import { BASE_SCALE, RADIAN_TO_ANGLE } from './perspective-utils';
+import { BASE_SCALE, RADIAN_TO_ANGLE } from '../utils/perspectiveUtils';
 import { colord, extend } from 'colord';
 import mixPlugin from 'colord/plugins/mix';
-import { memo, CSSProperties } from 'react';
-import { TILE, Tile as TileType } from './processData';
+import { TILE, Tile as TileType } from '../utils/processData';
+import { SQ2 } from '../utils/mathUtils';
+import { TileFace } from './TileFace';
 
 extend([mixPlugin]);
-
-const SQ2 = 1.41421356237;
 
 const oneUpRamps = new Set([0b1000, 0b0010, 0b0100, 0b0001]);
 const twoUpRamps = new Set([0b1100, 0b0110, 0b1001, 0b0011]);
@@ -400,40 +399,6 @@ function getRamp({
   return data;
 }
 
-function Face({
-  color,
-  style,
-  border,
-  fade,
-  bgColor,
-}: {
-  color: string;
-  style: CSSProperties;
-  border?: boolean;
-  fade: number;
-  bgColor: string;
-  allowTransition?: boolean;
-}) {
-  const finalColor = colord(color).mix(bgColor, fade).toHex();
-  const transition = `background-color ${125}ms linear`;
-
-  return (
-    <div
-      className={`absolute`}
-      style={{
-        pointerEvents: 'none',
-        height: `100%`,
-        width: `100%`,
-        transition,
-        backgroundColor: finalColor,
-        border: border ? `3px solid rgba(0,0,0,0.2)` : undefined,
-        overflow: 'visible',
-        ...style,
-      }}
-    />
-  );
-}
-
 interface RampEdgeData {
   transform: string;
   clip: string;
@@ -564,14 +529,14 @@ function getRampPaneBackground(
 
 export function Tile({
   bgColor = 'rgb(51 65 85)',
-  border = false,
+  debugBorder = false,
   getColorFromZ,
   tileSize,
   stepSize = 0.25,
   tileProps,
 }: {
   tileSize: number;
-  border: boolean;
+  debugBorder?: boolean;
   getColorFromZ: (z: number, offset: number) => string;
   bgColor?: string;
   stepSize?: number;
@@ -616,8 +581,7 @@ export function Tile({
     <>
       {/* duplicate x and y panes to fill gaps created by  ramp panes */}
       {edges.map((rampEdgeData, i) => (
-        <Face
-          allowTransition={false}
+        <TileFace
           bgColor={bgColor}
           color={getRampPaneBackground(
             rampEdgeData,
@@ -633,15 +597,16 @@ export function Tile({
             transform: `${rampEdgeData?.transform}`,
             transformOrigin: rampEdgeData?.anchor,
             clipPath: rampEdgeData?.clip,
+            transition: 'none',
           }}
         />
       ))}
 
       {/* z facing pane */}
-      <Face
+      <TileFace
         bgColor={bgColor}
-        border={border}
         color={fill || getColorFromZ(z, transform ? 0.5 : 0)}
+        debugBorder={debugBorder}
         fade={fade}
         style={{
           transform: `${transform}`,
@@ -652,10 +617,10 @@ export function Tile({
       />
 
       {/* duplicate z facing plane used by masked 1-up and 3-up triangles */}
-      <Face
+      <TileFace
         bgColor={bgColor}
-        border={border}
         color={getColorFromZ(z, extraZPlaneOffset)}
+        debugBorder={debugBorder}
         fade={fade}
         style={{
           transform: `${extraZPlaneTransform}`,
@@ -666,8 +631,7 @@ export function Tile({
       />
 
       {/* y facing plane */}
-      <Face
-        allowTransition={false}
+      <TileFace
         bgColor={bgColor}
         color={
           isLimitBottom
@@ -685,8 +649,7 @@ export function Tile({
       />
 
       {/* x facing plane */}
-      <Face
-        allowTransition={false}
+      <TileFace
         bgColor={bgColor}
         color={
           isLimitRight
@@ -707,5 +670,3 @@ export function Tile({
     </>
   );
 }
-
-export const MemoizedTile = memo(Tile);

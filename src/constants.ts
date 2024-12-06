@@ -13,8 +13,23 @@ export const colorsNatural = [
 
 export const bgColor = 'rgba(0, 20, 140, 1)';
 
+// Number of terrains to pregenerate
+export const terrainCount = 10;
+
+// proportion of tile each vertical step represents
 export const stepSize = 0.25;
+
+// total map perimeter
 export const mapSize = 120;
+
+// number of elevation levels
 export const levels = 7;
+
+// the height of land in terrain generator
+export const baseHeight = 2;
+
+// base tile size in pixels
 export const baseTileSize = 45;
-export const perimeter = 13;
+
+// number of
+export const visiblePerimeter = 13;

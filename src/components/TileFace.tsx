@@ -7,30 +7,22 @@ extend([mixPlugin]);
 export function TileFace({
   color,
   style,
-  debugBorder,
   fade,
   bgColor,
 }: {
   color: string;
   style: CSSProperties;
-  debugBorder?: boolean;
   fade: number;
   bgColor: string;
 }) {
   const finalColor = colord(color).mix(bgColor, fade).toHex();
-  const transition = `all ${125}ms`;
 
   return (
     <div
-      className={`absolute`}
+      className="absolute h-full w-full"
       style={{
-        pointerEvents: 'none',
-        height: `100%`,
-        width: `100%`,
-        transition,
+        transition: 'all 125ms',
         backgroundColor: finalColor,
-        border: debugBorder ? `3px solid rgba(0,0,0,0.1)` : undefined,
-        overflow: 'visible',
         ...style,
       }}
     />

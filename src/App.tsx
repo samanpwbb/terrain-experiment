@@ -16,7 +16,9 @@ import {
   colorsNatural,
   levels,
   mapSize,
-  perimeter,
+  visiblePerimeter,
+  terrainCount,
+  baseHeight,
 } from './constants';
 import { Button } from './components/Button';
 
@@ -25,11 +27,11 @@ const isChrome =
 
 setIsoCssVars();
 
-const gen = () => generateNaturalGround(levels, mapSize, 2);
+const gen = () => generateNaturalGround(levels, mapSize, baseHeight);
 const terrains = [] as number[][][];
+
 // pregenerate some terrain
-const count = 10;
-for (let i = 0; i < count; i++) {
+for (let i = 0; i < terrainCount; i++) {
   terrains.push(gen());
 }
 
@@ -97,7 +99,7 @@ export function App() {
 
   const updateCamera = useCallback((e: React.PointerEvent) => {
     if (!dragState.current) return;
-    if (Math.abs(e.movementY) + Math.abs(e.movementX) > 3) {
+    if (Math.abs(e.movementY) + Math.abs(e.movementX) > 2) {
       dragState.current = 'dragging';
     }
     if (dragState.current !== 'dragging') return;
@@ -150,7 +152,7 @@ export function App() {
         <Button onPress={() => setPixelate((v) => !v)}>
           Pixelate: {pixelate ? 'ON' : 'OFF'}
         </Button>
-        <Button onPress={() => setTerrainKey((v) => (v + 1) % count)}>
+        <Button onPress={() => setTerrainKey((v) => (v + 1) % terrainCount)}>
           Regenerate
         </Button>
         <a
@@ -173,7 +175,7 @@ export function App() {
           bgColor={bgColor}
           center={center}
           colors={colorsNatural}
-          perimeter={perimeter}
+          perimeter={visiblePerimeter}
           pixelate={pixelate}
           terrainData={terrains[terrainKey]}
           tileSize={tileSize}

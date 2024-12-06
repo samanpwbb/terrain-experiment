@@ -533,14 +533,12 @@ function getRampPaneBackground(
 
 export function Tile({
   bgColor = 'rgb(51 65 85)',
-  debugBorder = false,
   getColorFromZ,
   tileSize,
   stepSize = 0.25,
   tileProps,
 }: {
   tileSize: number;
-  debugBorder?: boolean;
   getColorFromZ: (z: number, offset: number) => string;
   bgColor?: string;
   stepSize?: number;
@@ -609,7 +607,6 @@ export function Tile({
       <TileFace
         bgColor={bgColor}
         color={fill || getColorFromZ(z, transform ? 0.5 : 0)}
-        debugBorder={debugBorder}
         fade={fade}
         style={{
           transform: `${transform}`,
@@ -622,7 +619,6 @@ export function Tile({
       <TileFace
         bgColor={bgColor}
         color={getColorFromZ(z, extraZPlaneOffset)}
-        debugBorder={debugBorder}
         fade={fade}
         style={{
           transform: `${extraZPlaneTransform}`,

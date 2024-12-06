@@ -11,7 +11,10 @@ export const colorsNatural = [
   '#0c4278',
 ].reverse();
 
+export const bgColor = 'rgba(0, 20, 140, 1)';
+
+export const stepSize = 0.25;
 export const mapSize = 120;
 export const levels = 7;
 export const baseTileSize = 70;
-export const perimeter = 12;
+export const perimeter = 13;

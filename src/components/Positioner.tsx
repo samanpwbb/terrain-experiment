@@ -40,6 +40,7 @@ export function Positioner({
         transformStyle: 'preserve-3d',
         height: `${tileSize}px`,
         width: `${tileSize}px`,
+        transition: 'transform 125ms',
         transform: translate3d,
         alignItems: 'center',
         justifyContent: 'center',

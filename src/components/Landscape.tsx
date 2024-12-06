@@ -1,94 +1,54 @@
 import { processData, TILE } from '../utils/processData';
 import { Tile } from './Tile';
 import { makeGetColorFromZ } from '../utils/makeGetColorFromZ';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { getVisibleTiles } from '../utils/getVisibleTiles';
 import { Positioner } from './Positioner';
 import { SvgFilters } from './SvgFilters';
 import { Decoration } from './Decorations';
+import { stepSize } from '../constants';
 
 export function Landscape({
   tileSize,
-  bufferSize = 1,
   terrainData,
   colors,
   perimeter,
   pixelate,
-  fade,
   bgColor,
+  center,
 }: {
   tileSize: number;
-  bufferSize: number;
   perimeter: number;
   terrainData: number[][];
   colors: string[];
   pixelate: boolean;
-  fade?: boolean;
   bgColor: string;
+  center: [number, number];
 }) {
   const getColorFromZ = useMemo(() => makeGetColorFromZ(colors), [colors]);
-  const [center, setCenter] = useState<[number, number]>([0, 0]);
-  const [stepSize] = useState(0.3);
-
   const tiles = useMemo(() => processData(terrainData), [terrainData]);
   const visible = useMemo(() => {
-    const vis = getVisibleTiles(
-      tiles,
-      center,
-      perimeter,
-      Boolean(fade),
-      bufferSize,
-    );
+    const vis = getVisibleTiles(tiles, center, perimeter);
     return Object.keys(vis).map((v) => ({
       key: v,
       item: vis[v],
     }));
-  }, [tiles, center, perimeter, fade, bufferSize]);
-
-  // use arrow keys to update center
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    switch (e.key) {
-      case 'ArrowUp':
-        setCenter((c) => [c[0], c[1] - 1]);
-        break;
-      case 'ArrowDown':
-        setCenter((c) => [c[0], c[1] + 1]);
-        break;
-      case 'ArrowLeft':
-        setCenter((c) => [c[0] - 1, c[1]]);
-        break;
-      case 'ArrowRight':
-        setCenter((c) => [c[0] + 1, c[1]]);
-        break;
-    }
-  }, []);
-
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleKeyDown]);
+  }, [tiles, center, perimeter]);
 
   return (
     <>
       <div
+        className="pointer-events-none absolute flex h-full w-full items-center justify-center"
         style={{
-          display: 'flex',
           backgroundColor: bgColor,
-          pointerEvents: 'none',
           filter: pixelate ? 'url("#pixelate")' : 'none',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: '100%',
-          height: '100%',
-          position: 'absolute',
-          bottom: 0,
-          paddingTop: '50vh',
+          paddingTop: '40vh',
           transformOrigin: 'center',
         }}
       >
         <div
+          className="absolute"
           style={{
-            position: 'absolute',
             transition: 'transform 125ms',
             transformStyle: 'preserve-3d',
             transform: `rotateX(var(--base-x)) rotateZ(var(--base-z)) translateX(${

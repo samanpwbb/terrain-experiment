@@ -136,7 +136,8 @@ function getRamp({
       //  / |
       // /  |
       // ----
-      data.extraZPlaneClipPath = 'polygon(100% -0%, 100% 100%, -0% 100%)';
+      // this extra plane is rendered as a half-triangle, but we don't need to
+      // bother clipping it because it is occluded by the primary z plane
 
       // ./|
       // / |
@@ -157,7 +158,8 @@ function getRamp({
       // |  /
       // | /
       // |/ .
-      data.extraZPlaneClipPath = 'polygon(0 0, 100% 0, 0 100%)';
+      // this extra plane is rendered as a half-triangle, but we don't need to
+      // bother clipping it because it is occluded by the primary z plane
 
       // |\.
       // | \
@@ -178,7 +180,8 @@ function getRamp({
       // \  |
       //  \ |
       // . \|
-      data.extraZPlaneClipPath = 'polygon(-0% 0, 100% 0, 100% 100%)';
+      // this extra plane is rendered as a half-triangle, but we don't need to
+      // bother clipping it because it is occluded by the primary z plane
 
       // ----
       // \  /
@@ -198,7 +201,8 @@ function getRamp({
       // | \
       // |  \
       // ----
-      data.extraZPlaneClipPath = 'polygon(0 0%, 100% 100%, 0 100%)';
+      // this extra plane is rendered as a half-triangle, but we don't need to
+      // bother clipping it because it is occluded by the primary z plane
 
       // ./\.
       // /  \
@@ -601,7 +605,6 @@ export function Tile({
           }}
         />
       ))}
-
       {/* z facing pane */}
       <TileFace
         bgColor={bgColor}
@@ -615,7 +618,6 @@ export function Tile({
           overflow: 'visible',
         }}
       />
-
       {/* duplicate z facing plane used by masked 1-up and 3-up triangles */}
       <TileFace
         bgColor={bgColor}
@@ -629,7 +631,6 @@ export function Tile({
           clipPath: extraZPlaneClipPath,
         }}
       />
-
       {/* y facing plane */}
       <TileFace
         bgColor={bgColor}
@@ -647,7 +648,6 @@ export function Tile({
           transformOrigin: 'bottom',
         }}
       />
-
       {/* x facing plane */}
       <TileFace
         bgColor={bgColor}

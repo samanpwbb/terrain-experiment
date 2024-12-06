@@ -36,7 +36,7 @@ function getRamp({
     fill: '',
 
     // secondary z plane, used for ramps that use half a tile.
-    extraZPlaneShow: false,
+    showExtraZPlane: false,
     extraZPlaneOffset: 0,
     extraZPlaneClipPath: '',
     extraZPlaneTransform: '',
@@ -60,7 +60,7 @@ function getRamp({
     const desiredLength = Math.hypot(zTile, squareDiagonal / 2);
     const lengthScale = desiredLength / (tileSize / 2);
 
-    data.extraZPlaneShow = true;
+    data.showExtraZPlane = true;
     data.extraZPlaneOffset = 0.5;
 
     // bottom
@@ -128,7 +128,7 @@ function getRamp({
     const singleCornerAngle = Math.atan(opposite / adjacent) * RADIAN_TO_ANGLE;
     const desiredLength = Math.hypot(zTile, squareDiagonal / 2);
     const xScale = desiredLength / (tileSize / 2);
-    data.extraZPlaneShow = true;
+    data.showExtraZPlane = true;
 
     // up
     if (s === 0b0100) {
@@ -255,7 +255,7 @@ function getRamp({
     const z = zStep * tileSize;
     const rotateZ = 45;
 
-    data.extraZPlaneShow = true;
+    data.showExtraZPlane = true;
     data.extraZPlaneOffset = 1;
     data.extraZPlaneTransform = `translateZ(${z}px)`;
 
@@ -549,7 +549,7 @@ export function Tile({
   const diffs = [l, u, r, d, lu, ru, rd, ld];
   const zStep = BASE_SCALE * stepSize;
   const {
-    extraZPlaneShow,
+    showExtraZPlane,
     extraZPlaneClipPath,
     extraZPlaneOffset,
     extraZPlaneTransform,
@@ -582,27 +582,30 @@ export function Tile({
   return (
     <>
       {/* duplicate x and y panes to fill gaps created by  ramp panes */}
-      {edges.map((rampEdgeData, i) => (
-        <TileFace
-          bgColor={bgColor}
-          color={getRampPaneBackground(
-            rampEdgeData,
-            z,
-            getColorFromZ,
-            rampEdgeData?.anchor as 'bottom' | 'right',
-            bgColor,
-          )}
-          fade={fade}
-          key={i}
-          style={{
-            opacity: rampEdgeData ? 1 : 0,
-            transform: `${rampEdgeData?.transform}`,
-            transformOrigin: rampEdgeData?.anchor,
-            clipPath: rampEdgeData?.clip,
-            transition: 'none',
-          }}
-        />
-      ))}
+      {edges.map((rampEdgeData, i) => {
+        if (!rampEdgeData) return null;
+
+        return (
+          <TileFace
+            bgColor={bgColor}
+            color={getRampPaneBackground(
+              rampEdgeData,
+              z,
+              getColorFromZ,
+              rampEdgeData?.anchor as 'bottom' | 'right',
+              bgColor,
+            )}
+            fade={fade}
+            key={i}
+            style={{
+              transform: `${rampEdgeData?.transform}`,
+              transformOrigin: rampEdgeData?.anchor,
+              clipPath: rampEdgeData?.clip,
+              transition: 'none',
+            }}
+          />
+        );
+      })}
       {/* z facing pane */}
       <TileFace
         bgColor={bgColor}
@@ -616,53 +619,57 @@ export function Tile({
         }}
       />
       {/* duplicate z facing plane used by masked 1-up and 3-up triangles */}
-      <TileFace
-        bgColor={bgColor}
-        color={getColorFromZ(z, extraZPlaneOffset)}
-        fade={fade}
-        style={{
-          transform: `${extraZPlaneTransform}`,
-          transformOrigin: extraZPlaneAnchor || anchor,
-          opacity: extraZPlaneShow ? 1 : 0,
-          clipPath: extraZPlaneClipPath,
-        }}
-      />
+      {showExtraZPlane && (
+        <TileFace
+          bgColor={bgColor}
+          color={getColorFromZ(z, extraZPlaneOffset)}
+          fade={fade}
+          style={{
+            transform: `${extraZPlaneTransform}`,
+            transformOrigin: extraZPlaneAnchor || anchor,
+            clipPath: extraZPlaneClipPath,
+          }}
+        />
+      )}
+
       {/* y facing plane */}
-      <TileFace
-        bgColor={bgColor}
-        color={
-          isLimitBottom
-            ? bgColor
-            : colord(getColorFromZ(z, extraZPlaneOffset))
-                .mix(bgColor, 0.2)
-                .toHex()
-        }
-        fade={fade}
-        style={{
-          opacity: showBottomPane ? 1 : 0,
-          transform: `rotateX(90deg) scaleY(${sideIdxBottom * zStep})`,
-          transformOrigin: 'bottom',
-        }}
-      />
+      {showBottomPane && (
+        <TileFace
+          bgColor={bgColor}
+          color={
+            isLimitBottom
+              ? bgColor
+              : colord(getColorFromZ(z, extraZPlaneOffset))
+                  .mix(bgColor, 0.2)
+                  .toHex()
+          }
+          fade={fade}
+          style={{
+            transform: `rotateX(90deg) scaleY(${sideIdxBottom * zStep})`,
+            transformOrigin: 'bottom',
+          }}
+        />
+      )}
       {/* x facing plane */}
-      <TileFace
-        bgColor={bgColor}
-        color={
-          isLimitRight
-            ? bgColor
-            : colord(getColorFromZ(z, extraZPlaneOffset))
-                .mix(bgColor, 0.3)
-                .toHex()
-        }
-        fade={fade}
-        style={{
-          opacity: showRightPane ? 1 : 0,
-          transform: `rotateY(90deg) scaleX(${
-            sideIdxRight * zStep
-          }) translateX(100%)`,
-          transformOrigin: 'right',
-        }}
-      />
+      {showRightPane && (
+        <TileFace
+          bgColor={bgColor}
+          color={
+            isLimitRight
+              ? bgColor
+              : colord(getColorFromZ(z, extraZPlaneOffset))
+                  .mix(bgColor, 0.3)
+                  .toHex()
+          }
+          fade={fade}
+          style={{
+            transform: `rotateY(90deg) scaleX(${
+              sideIdxRight * zStep
+            }) translateX(100%)`,
+            transformOrigin: 'right',
+          }}
+        />
+      )}
     </>
   );
 }

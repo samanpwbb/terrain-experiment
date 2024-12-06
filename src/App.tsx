@@ -104,15 +104,19 @@ export function App() {
     }
     if (dragState.current !== 'dragging') return;
 
-    // drag left/right to update baseX
-    // drag up/down to update baseZ
-    const newX = clamp(0, x.current - e.movementY * 0.25, 90);
-    updateBaseX(newX);
-    x.current = newX;
+    // Throttle updates so dragging feels smooth
+    requestAnimationFrame(() => {
+      // drag left/right to update baseX
+      // drag up/down to update baseZ
+      const newX = clamp(0, x.current - e.movementY * 0.25, 90);
+      updateBaseX(newX);
+      x.current = newX;
 
-    const newZ = clamp(0, z.current - e.movementX * 0.25, 90);
-    updateBaseZ(newZ);
-    z.current = newZ;
+      const newZ = clamp(0, z.current - e.movementX * 0.25, 90);
+      updateBaseZ(newZ);
+      z.current = newZ;
+    });
+
     e.preventDefault();
   }, []);
 

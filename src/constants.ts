@@ -32,4 +32,4 @@ export const baseHeight = 2;
 export const baseTileSize = 45;
 
 // number of
-export const visiblePerimeter = 13;
+export const visiblePerimeter = 15;

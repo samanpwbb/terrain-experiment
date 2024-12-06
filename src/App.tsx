@@ -97,7 +97,7 @@ export function App() {
 
   const updateCamera = useCallback((e: React.PointerEvent) => {
     if (!dragState.current) return;
-    if (Math.abs(e.movementY) + Math.abs(e.movementX) > 5) {
+    if (Math.abs(e.movementY) + Math.abs(e.movementX) > 3) {
       dragState.current = 'dragging';
     }
     if (dragState.current !== 'dragging') return;
@@ -130,13 +130,13 @@ export function App() {
    * Rendering
    ****************************************************************************/
   const windowSize = useWindowSize();
-  const tileSize = Math.round(baseTileSize + windowSize[0] * 0.01);
+  const tileSize = Math.round(baseTileSize + windowSize[0] * 0.02);
 
   if (windowSize[0] === 0) return null;
 
   return (
     <>
-      <div className="fixed top-5 left-5 z-10 flex select-none items-center justify-center gap-2 rounded-lg p-2 text-white">
+      <div className="fixed top-5 left-5 z-10 flex select-none flex-wrap items-center gap-2 rounded-lg p-2 font-mono text-sm text-white">
         <Button
           onPress={() => {
             updateBaseX(BASE_X);
@@ -153,6 +153,15 @@ export function App() {
         <Button onPress={() => setTerrainKey((v) => (v + 1) % count)}>
           Regenerate
         </Button>
+        <a
+          className="underline underline-offset-4"
+          href="https://github.com/samanpwbb/terrain-experiment"
+          rel="noreferrer"
+          target="_blank"
+        >
+          HTML Terrain experiment
+        </a>{' '}
+        by Saman Bemel-Benrud
       </div>
       <div
         className="fixed inset-0 flex touch-none items-center justify-center"

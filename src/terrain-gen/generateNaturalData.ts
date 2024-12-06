@@ -1,8 +1,9 @@
 import { makeNoise2D } from 'fast-simplex-noise';
 import { defaultGenerator } from './defaultGenerator';
-import { mutateAll, updateAll } from './updateAll';
+import { updateAll } from './updateAll';
 import { getNeighborElevations } from './getNeighbors';
 import { smoothAll } from './smooth';
+
 function fill(perimeter: number, height = 0) {
   const ground = [] as number[][];
   for (let y = 0; y < perimeter; y++) {
@@ -60,6 +61,7 @@ export function generateNaturalGround(
     ground = updateAll(ground, (v, x, y) =>
       raiseNoise(v, x, y, baseHeight + i, ground, 0.4 + i * 0.05),
     );
+
     ground = updateAll(ground, (v, x, y) =>
       grow(v, x, y, baseHeight + i, ground),
     );

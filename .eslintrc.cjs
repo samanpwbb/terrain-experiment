@@ -26,8 +26,14 @@ module.exports = {
       jsx: true,
     },
   },
-  plugins: ['import', 'react', '@typescript-eslint'],
+  plugins: [
+    'import',
+    'react',
+    '@typescript-eslint',
+    'eslint-plugin-react-compiler',
+  ],
   rules: {
+    'react-compiler/react-compiler': 'error',
     '@typescript-eslint/ban-ts-comment': 0,
     '@typescript-eslint/no-empty-function': 0,
     '@typescript-eslint/no-namespace': 0,

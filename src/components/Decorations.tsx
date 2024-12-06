@@ -1,6 +1,5 @@
 import { colord, extend } from 'colord';
 import mixPlugin from 'colord/plugins/mix';
-import { useMemo } from 'react';
 extend([mixPlugin]);
 
 function Weed({ rotate, fill }: { rotate: boolean; fill: string }) {
@@ -66,7 +65,7 @@ function Tree({ rotate, fill }: { rotate: boolean; fill: string }) {
     </svg>
   );
 }
-export function Entity({
+export function Decoration({
   type,
   fade,
   bgColor,
@@ -81,16 +80,12 @@ export function Entity({
   baseColor: string;
   fade: number;
 }) {
-  const fill = useMemo(
-    () =>
-      colord(baseColor)
-        .darken(0.15)
-        .desaturate(0.3)
-        .rotate(25)
-        .mix(bgColor, fade)
-        .toHex(),
-    [baseColor, bgColor, fade],
-  );
+  const fill = colord(baseColor)
+    .darken(0.15)
+    .desaturate(0.3)
+    .rotate(25)
+    .mix(bgColor, fade)
+    .toHex();
 
   let Type = Tree;
   if (type === 'bush') {

@@ -1,5 +1,5 @@
-import { memo, ReactNode } from 'react';
-import { BASE_SCALE } from './perspective-utils';
+import { ReactNode } from 'react';
+import { BASE_SCALE } from '../utils/perspectiveUtils';
 
 export function Positioner({
   stepSize = 0.25,
@@ -51,5 +51,3 @@ export function Positioner({
     </div>
   );
 }
-
-export const MemoizedPositioner = memo(Positioner);

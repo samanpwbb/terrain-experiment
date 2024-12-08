@@ -12,6 +12,8 @@ export type Tile = [
   rdNeighbor: number,
   ldNeighbor: number,
   fade: number,
+  // these get added later, in getVisibleTiles but would probably make more sense
+  // to set them here.
   vegetation?: 'weed' | 'bush' | 'tree',
   vegetationRotation?: number,
   vegetationScale?: number,

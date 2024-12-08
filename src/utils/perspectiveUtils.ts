@@ -13,22 +13,12 @@ function getScale(x = BASE_X) {
 export function setIsoCssVars() {
   document.documentElement.style.setProperty('--base-x', `${BASE_X}deg`);
   document.documentElement.style.setProperty('--base-z', `${BASE_Z}deg`);
-  document.documentElement.style.setProperty('--scale', `${BASE_SCALE}`);
-  document.documentElement.style.setProperty(
-    '--base-z-reverse',
-    `-${BASE_Z}deg`,
-  );
 }
 
 export function updateBaseX(degrees: number) {
   document.documentElement.style.setProperty('--base-x', `${degrees}deg`);
-  document.documentElement.style.setProperty('--scale', `${getScale(degrees)}`);
 }
 
 export function updateBaseZ(degrees: number) {
   document.documentElement.style.setProperty('--base-z', `${degrees}deg`);
-  document.documentElement.style.setProperty(
-    '--base-z-reverse',
-    `-${degrees}deg`,
-  );
 }

@@ -16,6 +16,8 @@ export function Landscape({
   pixelate,
   bgColor,
   center,
+  x,
+  z,
 }: {
   tileSize: number;
   perimeter: number;
@@ -24,6 +26,8 @@ export function Landscape({
   pixelate: boolean;
   bgColor: string;
   center: [number, number];
+  x: number;
+  z: number;
 }) {
   const getColorFromZ = useMemo(() => makeGetColorFromZ(colors), [colors]);
   const tiles = useMemo(() => processData(terrainData), [terrainData]);
@@ -49,9 +53,8 @@ export function Landscape({
         <div
           className="absolute"
           style={{
-            transition: 'transform 125ms',
             transformStyle: 'preserve-3d',
-            transform: `rotateX(var(--base-x)) rotateZ(var(--base-z)) translateX(${
+            transform: `rotateX(${x}deg) rotateZ(${z}deg) translateX(${
               -center[0] * tileSize
             }px) translateY(${-center[1] * tileSize}px)`,
           }}

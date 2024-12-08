@@ -9,16 +9,3 @@ export const BASE_SCALE = getScale(BASE_X);
 function getScale(x = BASE_X) {
   return 1 / Math.sin((x + 90) * ANGLE_TO_RADIAN);
 }
-
-export function setIsoCssVars() {
-  document.documentElement.style.setProperty('--base-x', `${BASE_X}deg`);
-  document.documentElement.style.setProperty('--base-z', `${BASE_Z}deg`);
-}
-
-export function updateBaseX(degrees: number) {
-  document.documentElement.style.setProperty('--base-x', `${degrees}deg`);
-}
-
-export function updateBaseZ(degrees: number) {
-  document.documentElement.style.setProperty('--base-z', `${degrees}deg`);
-}

@@ -1,11 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  setIsoCssVars,
-  updateBaseX,
-  BASE_X,
-  BASE_Z,
-  updateBaseZ,
-} from './utils/perspectiveUtils';
+import { BASE_X, BASE_Z } from './utils/perspectiveUtils';
 import { useWindowSize } from './hooks/useWindowSize';
 import { Landscape } from './components/Landscape';
 import { generateNaturalGround } from './terrain-gen/generateNaturalData';
@@ -24,8 +18,6 @@ import { Button } from './components/Button';
 
 const isChrome =
   /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-
-setIsoCssVars();
 
 const gen = () => generateNaturalGround(levels, mapSize, baseHeight);
 const terrains = [] as number[][][];
@@ -54,8 +46,8 @@ const keysToMoves = {
 };
 
 export function App() {
-  const x = useRef(BASE_X);
-  const z = useRef(BASE_Z);
+  const [x, setX] = useState(BASE_X);
+  const [z, setZ] = useState(BASE_Z);
   const [terrainKey, setTerrainKey] = useState(0);
   const [center, setCenter] = useState<[number, number]>([0, 0]);
 
@@ -97,25 +89,17 @@ export function App() {
     setCenter(moves[move]);
   };
 
+  // const animationFrameId = useRef<number | null>(null);
   const updateCamera = useCallback((e: React.PointerEvent) => {
     if (!dragState.current) return;
     if (Math.abs(e.movementY) + Math.abs(e.movementX) > 2) {
       dragState.current = 'dragging';
     }
     if (dragState.current !== 'dragging') return;
-
-    // Throttle updates so dragging feels smooth
-    requestAnimationFrame(() => {
-      // drag left/right to update baseX
-      // drag up/down to update baseZ
-      const newX = clamp(0, x.current - e.movementY * 0.25, 90);
-      updateBaseX(newX);
-      x.current = newX;
-
-      const newZ = clamp(0, z.current - e.movementX * 0.25, 90);
-      updateBaseZ(newZ);
-      z.current = newZ;
-    });
+    // drag left/right to update baseX
+    // drag up/down to update baseZ
+    setX((x) => clamp(0, x - e.movementY * 0.25, 90));
+    setZ((z) => clamp(0, z - e.movementX * 0.25, 90));
 
     e.preventDefault();
   }, []);
@@ -145,10 +129,8 @@ export function App() {
       <div className="fixed top-5 left-5 z-10 flex select-none flex-wrap items-center gap-2 rounded-lg p-2 font-mono text-sm text-white">
         <Button
           onPress={() => {
-            updateBaseX(BASE_X);
-            updateBaseZ(BASE_Z);
-            x.current = BASE_X;
-            z.current = BASE_Z;
+            setX(BASE_X);
+            setZ(BASE_Z);
           }}
         >
           Reset camera
@@ -183,6 +165,8 @@ export function App() {
           pixelate={pixelate}
           terrainData={terrains[terrainKey]}
           tileSize={tileSize}
+          x={x}
+          z={z}
         />
       </div>
     </>
